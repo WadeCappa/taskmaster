@@ -1,0 +1,69 @@
+syntax = "proto3";
+option go_package = "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspb";
+
+package tasks;
+
+service tasks {
+  rpc PutTask (PutTaskRequest) returns (PutTaskResponse) {}
+  rpc GetTasks (GetTasksRequest) returns (stream GetTasksResponse) {}
+  rpc DescribeTask (DescribeTaskRequest) returns (stream DescribeTaskResponse) {}
+  rpc MarkTask (MarkTaskRequest) returns (MarkTaskResponse) {}
+}
+
+message PutTaskRequest {
+  Task task = 1;
+}
+
+message PutTaskResponse {
+  uint64 task_id = 1;
+}
+
+// All fields are optional. For any given field, if nothing is provided then all tasks within 
+// that category are returned
+message GetTasksRequest {
+  Status status = 1;
+  repeated string tags = 2;
+}
+
+message GetTasksResponse {
+  uint64 task_id = 1;
+  Task task = 2;
+}
+
+message DescribeTaskRequest {
+  uint64 task_id = 1;
+}
+
+message DescribeTaskResponse {
+  uint64 task_id = 1;
+  Task task = 2;
+}
+
+message MarkTaskRequest {
+  uint64 task_id = 1;
+  string content = 2;
+}
+
+message MarkTaskResponse {}
+
+enum Priority {
+  DO_BEFORE_SLEEP = 0;
+  DO_IMMEDIATELY = 1;
+  SHOULD_DO = 2;
+  EVENTUALLY_DO = 3;
+}
+
+enum Status {
+  TRACKING = 0;
+  COMPLETED = 1;
+  BACKLOG = 2;
+}
+
+message Task {
+  string name = 1;
+  uint64 minutes_to_complete = 2;
+  Priority priority = 3;
+  Status status = 4;
+  repeated string tags = 5;
+  repeated uint64 prerequisites = 6;
+}
