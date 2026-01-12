@@ -114,11 +114,9 @@ func (s *tasksServer) MarkTask(
 	if err != nil {
 		return nil, fmt.Errorf("getting user Id: %w", err)
 	}
-
 	if request.GetContent() == "" {
 		return nil, errors.New("received mark request without any content")
 	}
-
 	if err := s.db.Mark(
 		ctx,
 		userId,

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	taskspb "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Task struct {
@@ -82,6 +83,13 @@ func (t *Task) ToWireType() *taskspb.Task {
 	for i, p := range t.prerequisites {
 		prereqs[i] = uint64(p)
 	}
+	addendums := make([]*taskspb.Addendum, len(t.addendums))
+	for i, a := range t.addendums {
+		addendums[i] = &taskspb.Addendum{
+			Content:     a.content,
+			TimeCreated: timestamppb.New(a.created),
+		}
+	}
 	return &taskspb.Task{
 		Name:              t.name,
 		MinutesToComplete: uint64(t.timeToComplete.Minutes()),
@@ -89,6 +97,7 @@ func (t *Task) ToWireType() *taskspb.Task {
 		Status:            taskspb.Status(t.status),
 		Tags:              tags,
 		Prerequisites:     prereqs,
+		Addendums:         addendums,
 	}
 }
 

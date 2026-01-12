@@ -56,14 +56,14 @@ func (e *Database) Describe(
 		}
 
 		describedTask := TaskFromDb(fields, Priority(priority), Status(status))
-		res = append(res, types.Of(TaskId(taskId), describedTask))
-
 		if err := getTagsForTasks(ctx, c, map[TaskId]*Task{taskId: &describedTask}); err != nil {
 			return fmt.Errorf("getting tags for tasks: %w", err)
 		}
-		if err := getAddendumsForTasks(ctx, c, map[TaskId]*Task{}); err != nil {
+		if err := getAddendumsForTasks(ctx, c, map[TaskId]*Task{taskId: &describedTask}); err != nil {
 			return fmt.Errorf("getting addendums for tasks: %w", err)
 		}
+
+		res = append(res, types.Of(TaskId(taskId), describedTask))
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("making connection to postgres for query: %w", err)
@@ -243,7 +243,7 @@ func getAddendumsForTasks(
 	conn *pgx.Conn,
 	tasks map[TaskId]*Task,
 ) error {
-	taskIds := make([]uint64, len(tasks))
+	taskIds := make([]uint64, 0, len(tasks))
 	for taskId := range tasks {
 		taskIds = append(taskIds, uint64(taskId))
 	}

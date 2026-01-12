@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 const (
@@ -85,7 +86,11 @@ func get() error {
 			if err != nil {
 				return fmt.Errorf("could not receive next entry: %w", err)
 			}
-			fmt.Println(res)
+			jsonBytes, err := protojson.Marshal(res)
+			if err != nil {
+				return fmt.Errorf("converting to json: %w", err)
+			}
+			fmt.Println(string(jsonBytes))
 		}
 	}); err != nil {
 		return fmt.Errorf("getting task: %w", err)
@@ -174,6 +179,39 @@ func put() error {
 }
 
 func describe() error {
+	var hostname string
+	var bearer string
+	var secure bool
+	descCmd := flag.NewFlagSet("", flag.ExitOnError)
+	connectionFlags(descCmd, &hostname, &secure, &bearer)
+
+	taskId := descCmd.Uint64("task-id", 0, "the ID of the task that you want to explore")
+	descCmd.Parse(os.Args[2:])
+
+	if err := withTasksClient(hostname, secure, func(client taskspb.TasksClient) error {
+		stream, err := client.DescribeTask(getContext(bearer), &taskspb.DescribeTaskRequest{
+			TaskId: *taskId,
+		})
+		if err != nil {
+			return fmt.Errorf("calling task client: %w", err)
+		}
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("could not receive next entry: %w", err)
+			}
+			jsonBytes, err := protojson.Marshal(res)
+			if err != nil {
+				return fmt.Errorf("converting to json: %w", err)
+			}
+			fmt.Println(string(jsonBytes))
+		}
+	}); err != nil {
+		return fmt.Errorf("failed to mark task: %w", err)
+	}
 	return nil
 }
 
@@ -183,14 +221,35 @@ func mark() error {
 	var secure bool
 	markCmd := flag.NewFlagSet("", flag.ExitOnError)
 	connectionFlags(markCmd, &hostname, &secure, &bearer)
+	markCmd.Parse(os.Args[2:])
+
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Print("taskId: \n")
+	taskId, err := readUint64(reader, "task-id")
+	if err != nil {
+		return fmt.Errorf("failed to read taskId: %w", err)
+	}
+
+	fmt.Print("message: \n")
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("failed to read message: %w", err)
+	}
+	content := strings.Trim(input, "\n")
 
 	if err := withTasksClient(hostname, secure, func(client taskspb.TasksClient) error {
-		client.MarkTask(getContext(bearer), &taskspb.MarkTaskRequest{
-
-		})
+		if _, err := client.MarkTask(getContext(bearer), &taskspb.MarkTaskRequest{
+			Content: content,
+			TaskId:  taskId,
+		}); err != nil {
+			return fmt.Errorf("calling task client: %w", err)
+		}
+		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to mark task: %w", err)
 	}
+	return nil
 }
 
 func getGrpcClient(hostname string, secure bool) (*grpc.ClientConn, error) {
