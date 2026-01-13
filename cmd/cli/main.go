@@ -190,26 +190,18 @@ func describe() error {
 	descCmd.Parse(os.Args[2:])
 
 	if err := withTasksClient(hostname, secure, func(client taskspb.TasksClient) error {
-		stream, err := client.DescribeTask(getContext(bearer), &taskspb.DescribeTaskRequest{
+		resp, err := client.DescribeTask(getContext(bearer), &taskspb.DescribeTaskRequest{
 			TaskId: *taskId,
 		})
 		if err != nil {
 			return fmt.Errorf("calling task client: %w", err)
 		}
-		for {
-			res, err := stream.Recv()
-			if err == io.EOF {
-				return nil
-			}
-			if err != nil {
-				return fmt.Errorf("could not receive next entry: %w", err)
-			}
-			jsonBytes, err := protojson.Marshal(res)
-			if err != nil {
-				return fmt.Errorf("converting to json: %w", err)
-			}
-			fmt.Println(string(jsonBytes))
+		jsonBytes, err := protojson.Marshal(resp)
+		if err != nil {
+			return fmt.Errorf("converting to json: %w", err)
 		}
+		fmt.Println(string(jsonBytes))
+		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to mark task: %w", err)
 	}
