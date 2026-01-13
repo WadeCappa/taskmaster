@@ -2,21 +2,19 @@ package database
 
 import (
 	"errors"
-	"iter"
 	"time"
 
 	taskspb "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Task struct {
-	name           string
-	timeToComplete time.Duration
-	priority       Priority
-	status         Status
-	tags           []Tag
-	prerequisites  []TaskId
-	addendums      []Addendum
+	name              string
+	timeToComplete    time.Duration
+	priority          Priority
+	status            Status
+	tags              []Tag
+	prerequisites     []TaskId
+	numberOfAddendums uint64
 }
 
 func FromWireType(wire *taskspb.Task) (Task, error) {
@@ -83,13 +81,6 @@ func (t *Task) ToWireType() *taskspb.Task {
 	for i, p := range t.prerequisites {
 		prereqs[i] = uint64(p)
 	}
-	addendums := make([]*taskspb.Addendum, len(t.addendums))
-	for i, a := range t.addendums {
-		addendums[i] = &taskspb.Addendum{
-			Content:     a.content,
-			TimeCreated: timestamppb.New(a.created),
-		}
-	}
 	return &taskspb.Task{
 		Name:              t.name,
 		MinutesToComplete: uint64(t.timeToComplete.Minutes()),
@@ -97,17 +88,7 @@ func (t *Task) ToWireType() *taskspb.Task {
 		Status:            taskspb.Status(t.status),
 		Tags:              tags,
 		Prerequisites:     prereqs,
-		Addendums:         addendums,
-	}
-}
-
-func (t *Task) GetPrereqs() iter.Seq[TaskId] {
-	return func(yield func(TaskId) bool) {
-		for _, taskId := range t.prerequisites {
-			if !yield(taskId) {
-				return
-			}
-		}
+		NumberOfAddendums: t.numberOfAddendums,
 	}
 }
 

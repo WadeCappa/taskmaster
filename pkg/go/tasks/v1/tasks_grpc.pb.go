@@ -32,7 +32,7 @@ const (
 type TasksClient interface {
 	PutTask(ctx context.Context, in *PutTaskRequest, opts ...grpc.CallOption) (*PutTaskResponse, error)
 	GetTasks(ctx context.Context, in *GetTasksRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTasksResponse], error)
-	DescribeTask(ctx context.Context, in *DescribeTaskRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DescribeTaskResponse], error)
+	DescribeTask(ctx context.Context, in *DescribeTaskRequest, opts ...grpc.CallOption) (*DescribeTaskResponse, error)
 	MarkTask(ctx context.Context, in *MarkTaskRequest, opts ...grpc.CallOption) (*MarkTaskResponse, error)
 	GetTags(ctx context.Context, in *GetTagsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTagsResponse], error)
 }
@@ -74,24 +74,15 @@ func (c *tasksClient) GetTasks(ctx context.Context, in *GetTasksRequest, opts ..
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Tasks_GetTasksClient = grpc.ServerStreamingClient[GetTasksResponse]
 
-func (c *tasksClient) DescribeTask(ctx context.Context, in *DescribeTaskRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DescribeTaskResponse], error) {
+func (c *tasksClient) DescribeTask(ctx context.Context, in *DescribeTaskRequest, opts ...grpc.CallOption) (*DescribeTaskResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Tasks_ServiceDesc.Streams[1], Tasks_DescribeTask_FullMethodName, cOpts...)
+	out := new(DescribeTaskResponse)
+	err := c.cc.Invoke(ctx, Tasks_DescribeTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[DescribeTaskRequest, DescribeTaskResponse]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
+	return out, nil
 }
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Tasks_DescribeTaskClient = grpc.ServerStreamingClient[DescribeTaskResponse]
 
 func (c *tasksClient) MarkTask(ctx context.Context, in *MarkTaskRequest, opts ...grpc.CallOption) (*MarkTaskResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -105,7 +96,7 @@ func (c *tasksClient) MarkTask(ctx context.Context, in *MarkTaskRequest, opts ..
 
 func (c *tasksClient) GetTags(ctx context.Context, in *GetTagsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTagsResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Tasks_ServiceDesc.Streams[2], Tasks_GetTags_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Tasks_ServiceDesc.Streams[1], Tasks_GetTags_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +119,7 @@ type Tasks_GetTagsClient = grpc.ServerStreamingClient[GetTagsResponse]
 type TasksServer interface {
 	PutTask(context.Context, *PutTaskRequest) (*PutTaskResponse, error)
 	GetTasks(*GetTasksRequest, grpc.ServerStreamingServer[GetTasksResponse]) error
-	DescribeTask(*DescribeTaskRequest, grpc.ServerStreamingServer[DescribeTaskResponse]) error
+	DescribeTask(context.Context, *DescribeTaskRequest) (*DescribeTaskResponse, error)
 	MarkTask(context.Context, *MarkTaskRequest) (*MarkTaskResponse, error)
 	GetTags(*GetTagsRequest, grpc.ServerStreamingServer[GetTagsResponse]) error
 	mustEmbedUnimplementedTasksServer()
@@ -147,8 +138,8 @@ func (UnimplementedTasksServer) PutTask(context.Context, *PutTaskRequest) (*PutT
 func (UnimplementedTasksServer) GetTasks(*GetTasksRequest, grpc.ServerStreamingServer[GetTasksResponse]) error {
 	return status.Error(codes.Unimplemented, "method GetTasks not implemented")
 }
-func (UnimplementedTasksServer) DescribeTask(*DescribeTaskRequest, grpc.ServerStreamingServer[DescribeTaskResponse]) error {
-	return status.Error(codes.Unimplemented, "method DescribeTask not implemented")
+func (UnimplementedTasksServer) DescribeTask(context.Context, *DescribeTaskRequest) (*DescribeTaskResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DescribeTask not implemented")
 }
 func (UnimplementedTasksServer) MarkTask(context.Context, *MarkTaskRequest) (*MarkTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkTask not implemented")
@@ -206,16 +197,23 @@ func _Tasks_GetTasks_Handler(srv interface{}, stream grpc.ServerStream) error {
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Tasks_GetTasksServer = grpc.ServerStreamingServer[GetTasksResponse]
 
-func _Tasks_DescribeTask_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(DescribeTaskRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _Tasks_DescribeTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DescribeTaskRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(TasksServer).DescribeTask(m, &grpc.GenericServerStream[DescribeTaskRequest, DescribeTaskResponse]{ServerStream: stream})
+	if interceptor == nil {
+		return srv.(TasksServer).DescribeTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Tasks_DescribeTask_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TasksServer).DescribeTask(ctx, req.(*DescribeTaskRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Tasks_DescribeTaskServer = grpc.ServerStreamingServer[DescribeTaskResponse]
 
 func _Tasks_MarkTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MarkTaskRequest)
@@ -258,6 +256,10 @@ var Tasks_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Tasks_PutTask_Handler,
 		},
 		{
+			MethodName: "DescribeTask",
+			Handler:    _Tasks_DescribeTask_Handler,
+		},
+		{
 			MethodName: "MarkTask",
 			Handler:    _Tasks_MarkTask_Handler,
 		},
@@ -266,11 +268,6 @@ var Tasks_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetTasks",
 			Handler:       _Tasks_GetTasks_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "DescribeTask",
-			Handler:       _Tasks_DescribeTask_Handler,
 			ServerStreams: true,
 		},
 		{

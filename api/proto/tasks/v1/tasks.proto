@@ -8,7 +8,7 @@ package tasks;
 service tasks {
   rpc PutTask (PutTaskRequest) returns (PutTaskResponse) {}
   rpc GetTasks (GetTasksRequest) returns (stream GetTasksResponse) {}
-  rpc DescribeTask (DescribeTaskRequest) returns (stream DescribeTaskResponse) {}
+  rpc DescribeTask (DescribeTaskRequest) returns (DescribeTaskResponse) {}
   rpc MarkTask (MarkTaskRequest) returns (MarkTaskResponse) {}
   rpc GetTags (GetTagsRequest) returns (stream GetTagsResponse) {}
 }
@@ -38,8 +38,8 @@ message DescribeTaskRequest {
 }
 
 message DescribeTaskResponse {
-  uint64 task_id = 1;
-  Task task = 2;
+  Task task = 1;
+  repeated Addendum addendum = 2;
 }
 
 message MarkTaskRequest {
@@ -71,7 +71,7 @@ enum Status {
   BACKLOG = 2;
 }
 
-message addendum {
+message Addendum {
   string content = 1;
   google.protobuf.Timestamp time_created = 2;
 }
@@ -81,7 +81,7 @@ message Task {
   uint64 minutes_to_complete = 2;
   Priority priority = 3;
   Status status = 4;
-  repeated string tags = 5;
-  repeated uint64 prerequisites = 6;
-  repeated addendum addendums = 7;
+  uint64 numberOfAddendums = 5;
+  repeated string tags = 6;
+  repeated uint64 prerequisites = 7;
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/WadeCappa/taskmaster/internal/database"
 	"github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type tasksServer struct {
@@ -85,26 +84,28 @@ func (s *tasksServer) GetTasks(
 }
 
 func (s *tasksServer) DescribeTask(
+	ctx context.Context,
 	request *taskspb.DescribeTaskRequest,
-	stream grpc.ServerStreamingServer[taskspb.DescribeTaskResponse],
-) error {
-	userId, err := s.auth.GetUserId(stream.Context())
+) (*taskspb.DescribeTaskResponse, error) {
+	userId, err := s.auth.GetUserId(ctx)
 	if err != nil {
-		return fmt.Errorf("getting user Id: %w", err)
+		return nil, fmt.Errorf("getting user Id: %w", err)
 	}
 
-	itr, err := s.db.Describe(stream.Context(), userId, database.TaskId(request.TaskId))
+	task, err := s.db.Describe(ctx, userId, database.TaskId(request.TaskId))
 	if err != nil {
-		return fmt.Errorf("finding task: %w", err)
+		return nil, fmt.Errorf("finding task: %w", err)
 	}
 
-	for _, task := range itr {
-		stream.Send(&taskspb.DescribeTaskResponse{
-			TaskId: uint64(task.First),
-			Task:   task.Second.ToWireType(),
-		})
+	wireAddendums := make([]*taskspb.Addendum, len(task.Second))
+	for i, t := range task.Second {
+		wireAddendums[i] = t.ToWireType()
 	}
-	return nil
+
+	return &taskspb.DescribeTaskResponse{
+		Task:     task.First.ToWireType(),
+		Addendum: wireAddendums,
+	}, nil
 }
 
 func (s *tasksServer) MarkTask(
@@ -142,12 +143,7 @@ func (s *tasksServer) GetTags(
 		return fmt.Errorf("getting tags from DB: %w", err)
 	}
 	for _, t := range tags {
-		stream.Send(&taskspb.GetTagsResponse{
-			TagId:     t.Id,
-			Name:      t.Name,
-			WriteTime: timestamppb.New(t.TimeCreated),
-			Count:     t.Count,
-		})
+		stream.Send(t.ToWireType())
 	}
 	return nil
 }

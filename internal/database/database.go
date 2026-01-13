@@ -12,17 +12,18 @@ import (
 )
 
 const (
-	insertTaskQuery           = "insert into tasks (task_id, user_id, fields, priority, status) values (nextval('task_ids'), $1, $2, $3, $4) returning task_id"
-	getTasksWithTags          = "select t.task_id, t.fields, t.priority, t.status from tasks t join tags_to_tasks ttt on t.task_id = ttt.task_id join tags tg on tg.tag_id = ttt.tag_id where t.user_id = $1 and tg.name = any ($2) and t.status = $3 group by t.task_id having count(distinct tg.tag_id) = cardinality($2) order by priority;"
-	getTasksWithIgnoringTags  = "select t.task_id, t.fields, t.priority, t.status from tasks t join tags_to_tasks ttt on t.task_id = ttt.task_id join tags tg on tg.tag_id = ttt.tag_id where t.user_id = $1 and t.status = $2 group by t.task_id order by priority"
-	describeTask              = "select t.fields, t.priority, t.status from tasks t where t.task_id = $1 and t.user_id = $2"
-	getTagsForTasksQuery      = "select distinct tg.tag_id, ttt.task_id, tg.name from tags tg join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where ttt.task_id = any($1)"
-	getAddendumsForTasksQuery = "select a.task_id, a.content, a.write_time from addendums a where a.task_id = any($1) order by a.write_time"
-	getTagsFromString         = "select tg.tag_id, tg.name from tags tg where tg.name = any ($1)"
-	insertTag                 = "insert into tags (user_id, tag_id, write_time, name) values ($1, nextval('tag_ids'), now(), $2) returning tag_id, name"
-	insertTagsToTasks         = "insert into tags_to_tasks (task_id, tag_id) values ($1, $2)"
-	insertAddundum            = "insert into addendums (addendum_id, user_id, task_id, content, write_time) values (nextval('addendum_ids'), $1, $2, $3, now())"
-	getTags                   = "select tg.tag_id, tg.name, tg.write_time, count(ttt.task_id) from tags tg left join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where tg.user_id = $1 group by tg.tag_id order by tg.tag_id;"
+	insertTaskQuery              = "insert into tasks (task_id, user_id, fields, priority, status) values (nextval('task_ids'), $1, $2, $3, $4) returning task_id"
+	getTasksWithTags             = "select t.task_id, t.fields, t.priority, t.status from tasks t join tags_to_tasks ttt on t.task_id = ttt.task_id join tags tg on tg.tag_id = ttt.tag_id where t.user_id = $1 and tg.name = any ($2) and t.status = $3 group by t.task_id having count(distinct tg.tag_id) = cardinality($2) order by priority;"
+	getTasksWithIgnoringTags     = "select t.task_id, t.fields, t.priority, t.status from tasks t join tags_to_tasks ttt on t.task_id = ttt.task_id join tags tg on tg.tag_id = ttt.tag_id where t.user_id = $1 and t.status = $2 group by t.task_id order by priority"
+	describeTask                 = "select t.fields, t.priority, t.status from tasks t where t.task_id = $1 and t.user_id = $2"
+	getTagsForTasksQuery         = "select distinct tg.tag_id, ttt.task_id, tg.name from tags tg join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where ttt.task_id = any($1)"
+	getNumberOfAddendumsForTasks = "select t.task_id, count(a.addendum_id) from tasks t left join addendums a on a.task_id = t.task_id where t.task_id = any($1) group by t.task_id"
+	getAddendumsForTasksQuery    = "select a.task_id, a.content, a.write_time from addendums a where a.task_id = any($1) order by a.write_time"
+	getTagsFromString            = "select tg.tag_id, tg.name from tags tg where tg.name = any ($1)"
+	insertTag                    = "insert into tags (user_id, tag_id, write_time, name) values ($1, nextval('tag_ids'), now(), $2) returning tag_id, name"
+	insertTagsToTasks            = "insert into tags_to_tasks (task_id, tag_id) values ($1, $2)"
+	insertAddundum               = "insert into addendums (addendum_id, user_id, task_id, content, write_time) values (nextval('addendum_ids'), $1, $2, $3, now())"
+	getTags                      = "select tg.tag_id, tg.name, tg.write_time, count(ttt.task_id) from tags tg left join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where tg.user_id = $1 group by tg.tag_id order by tg.tag_id;"
 )
 
 type Database struct {
@@ -45,31 +46,33 @@ func (e *Database) Describe(
 	ctx context.Context,
 	userId auth.UserId,
 	taskId TaskId,
-) ([]types.Pair[TaskId, Task], error) {
-	var res []types.Pair[TaskId, Task]
-	if err := store.Call(ctx, e.psqlUrl, func(c *pgx.Conn) error {
+) (types.Pair[Task, []Addendum], error) {
+	res, err := store.CallAndReturn(ctx, e.psqlUrl, func(c *pgx.Conn) (*types.Pair[Task, []Addendum], error) {
 		var fields TaskAttributes
 		var priority int
 		var status int
 		err := c.QueryRow(ctx, describeTask, taskId, userId).Scan(&fields, &priority, &status)
 		if err != nil {
-			return fmt.Errorf("getting task row for describe: %w", err)
+			return nil, fmt.Errorf("getting task row for describe: %w", err)
 		}
 
 		describedTask := TaskFromDb(fields, Priority(priority), Status(status))
 		if err := getTagsForTasks(ctx, c, map[TaskId]*Task{taskId: &describedTask}); err != nil {
-			return fmt.Errorf("getting tags for tasks: %w", err)
+			return nil, fmt.Errorf("getting tags for tasks: %w", err)
 		}
-		if err := getAddendumsForTasks(ctx, c, map[TaskId]*Task{taskId: &describedTask}); err != nil {
-			return fmt.Errorf("getting addendums for tasks: %w", err)
+		addendumsToTasks, err := getAddendumsForTasks(ctx, c, []TaskId{taskId})
+		if err != nil {
+			return nil, fmt.Errorf("getting addendums for tasks: %w", err)
 		}
+		describedTask.numberOfAddendums = uint64(len(addendumsToTasks[taskId]))
 
-		res = append(res, types.Of(TaskId(taskId), describedTask))
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("making connection to postgres for query: %w", err)
+		res := types.Of(describedTask, addendumsToTasks[taskId])
+		return &res, nil
+	})
+	if err != nil {
+		return types.Of[Task, []Addendum](Task{}, nil), fmt.Errorf("making connection to postgres for query: %w", err)
 	}
-	return res, nil
+	return *res, nil
 }
 
 func (e *Database) Get(
@@ -109,6 +112,9 @@ func (e *Database) Get(
 
 		if err := getTagsForTasks(ctx, c, lookup); err != nil {
 			return fmt.Errorf("getting tags for tasks: %w", err)
+		}
+		if err := getNumberOfAddendums(ctx, c, lookup); err != nil {
+			return fmt.Errorf("getting number of addendums for tasks: %w", err)
 		}
 		return nil
 	}); err != nil {
@@ -266,30 +272,53 @@ func getTagsForTasks(
 	return nil
 }
 
-func getAddendumsForTasks(
+func getNumberOfAddendums(
 	ctx context.Context,
 	conn *pgx.Conn,
 	tasks map[TaskId]*Task,
 ) error {
-	taskIds := make([]uint64, 0, len(tasks))
+	taskIds := make([]uint64, len(tasks))
 	for taskId := range tasks {
 		taskIds = append(taskIds, uint64(taskId))
 	}
 
-	rows, err := conn.Query(ctx, getAddendumsForTasksQuery, taskIds)
+	rows, err := conn.Query(ctx, getNumberOfAddendumsForTasks, taskIds)
 	if err != nil {
-		return fmt.Errorf("getting addendums for tasks: %w", err)
+		return fmt.Errorf("getting number of addendums for tasks: %w", err)
 	}
 	defer rows.Close()
+	for rows.Next() {
+		var taskId uint64
+		var count uint64
+		if err := rows.Scan(&taskId, &count); err != nil {
+			return fmt.Errorf("scanning next addendum count: %w", err)
+		}
+		t := tasks[TaskId(taskId)]
+		t.numberOfAddendums = count
+	}
+	return nil
+}
+
+func getAddendumsForTasks(
+	ctx context.Context,
+	conn *pgx.Conn,
+	taskIds []TaskId,
+) (map[TaskId][]Addendum, error) {
+	rows, err := conn.Query(ctx, getAddendumsForTasksQuery, taskIds)
+	if err != nil {
+		return nil, fmt.Errorf("getting addendums for tasks: %w", err)
+	}
+	defer rows.Close()
+
+	addendums := map[TaskId][]Addendum{}
 	for rows.Next() {
 		var taskId uint64
 		var content string
 		var writeTime time.Time
 		if err := rows.Scan(&taskId, &content, &writeTime); err != nil {
-			return fmt.Errorf("scanning next tag: %w", err)
+			return nil, fmt.Errorf("scanning next tag: %w", err)
 		}
-		t := tasks[TaskId(taskId)]
-		t.addendums = append(t.addendums, NewAddendum(writeTime, content))
+		addendums[TaskId(taskId)] = append(addendums[TaskId(taskId)], NewAddendum(writeTime, content))
 	}
-	return nil
+	return addendums, nil
 }

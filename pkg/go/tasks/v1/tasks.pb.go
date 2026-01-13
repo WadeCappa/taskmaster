@@ -363,8 +363,8 @@ func (x *DescribeTaskRequest) GetTaskId() uint64 {
 
 type DescribeTaskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TaskId        uint64                 `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
-	Task          *Task                  `protobuf:"bytes,2,opt,name=task,proto3" json:"task,omitempty"`
+	Task          *Task                  `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
+	Addendum      []*Addendum            `protobuf:"bytes,2,rep,name=addendum,proto3" json:"addendum,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -399,16 +399,16 @@ func (*DescribeTaskResponse) Descriptor() ([]byte, []int) {
 	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *DescribeTaskResponse) GetTaskId() uint64 {
-	if x != nil {
-		return x.TaskId
-	}
-	return 0
-}
-
 func (x *DescribeTaskResponse) GetTask() *Task {
 	if x != nil {
 		return x.Task
+	}
+	return nil
+}
+
+func (x *DescribeTaskResponse) GetAddendum() []*Addendum {
+	if x != nil {
+		return x.Addendum
 	}
 	return nil
 }
@@ -663,9 +663,9 @@ type Task struct {
 	MinutesToComplete uint64                 `protobuf:"varint,2,opt,name=minutes_to_complete,json=minutesToComplete,proto3" json:"minutes_to_complete,omitempty"`
 	Priority          Priority               `protobuf:"varint,3,opt,name=priority,proto3,enum=tasks.Priority" json:"priority,omitempty"`
 	Status            Status                 `protobuf:"varint,4,opt,name=status,proto3,enum=tasks.Status" json:"status,omitempty"`
-	Tags              []string               `protobuf:"bytes,5,rep,name=tags,proto3" json:"tags,omitempty"`
-	Prerequisites     []uint64               `protobuf:"varint,6,rep,packed,name=prerequisites,proto3" json:"prerequisites,omitempty"`
-	Addendums         []*Addendum            `protobuf:"bytes,7,rep,name=addendums,proto3" json:"addendums,omitempty"`
+	NumberOfAddendums uint64                 `protobuf:"varint,5,opt,name=numberOfAddendums,proto3" json:"numberOfAddendums,omitempty"`
+	Tags              []string               `protobuf:"bytes,6,rep,name=tags,proto3" json:"tags,omitempty"`
+	Prerequisites     []uint64               `protobuf:"varint,7,rep,packed,name=prerequisites,proto3" json:"prerequisites,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -728,6 +728,13 @@ func (x *Task) GetStatus() Status {
 	return Status_TRACKING
 }
 
+func (x *Task) GetNumberOfAddendums() uint64 {
+	if x != nil {
+		return x.NumberOfAddendums
+	}
+	return 0
+}
+
 func (x *Task) GetTags() []string {
 	if x != nil {
 		return x.Tags
@@ -738,13 +745,6 @@ func (x *Task) GetTags() []string {
 func (x *Task) GetPrerequisites() []uint64 {
 	if x != nil {
 		return x.Prerequisites
-	}
-	return nil
-}
-
-func (x *Task) GetAddendums() []*Addendum {
-	if x != nil {
-		return x.Addendums
 	}
 	return nil
 }
@@ -765,10 +765,10 @@ const file_tasks_v1_tasks_proto_rawDesc = "" +
 	"\atask_id\x18\x01 \x01(\x04R\x06taskId\x12\x1f\n" +
 	"\x04task\x18\x02 \x01(\v2\v.tasks.TaskR\x04task\".\n" +
 	"\x13DescribeTaskRequest\x12\x17\n" +
-	"\atask_id\x18\x01 \x01(\x04R\x06taskId\"P\n" +
-	"\x14DescribeTaskResponse\x12\x17\n" +
-	"\atask_id\x18\x01 \x01(\x04R\x06taskId\x12\x1f\n" +
-	"\x04task\x18\x02 \x01(\v2\v.tasks.TaskR\x04task\"D\n" +
+	"\atask_id\x18\x01 \x01(\x04R\x06taskId\"d\n" +
+	"\x14DescribeTaskResponse\x12\x1f\n" +
+	"\x04task\x18\x01 \x01(\v2\v.tasks.TaskR\x04task\x12+\n" +
+	"\baddendum\x18\x02 \x03(\v2\x0f.tasks.AddendumR\baddendum\"D\n" +
 	"\x0fMarkTaskRequest\x12\x17\n" +
 	"\atask_id\x18\x01 \x01(\x04R\x06taskId\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\"\x12\n" +
@@ -780,17 +780,17 @@ const file_tasks_v1_tasks_proto_rawDesc = "" +
 	"\n" +
 	"write_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\twriteTime\x12\x14\n" +
 	"\x05count\x18\x04 \x01(\x04R\x05count\"c\n" +
-	"\baddendum\x12\x18\n" +
+	"\bAddendum\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x12=\n" +
-	"\ftime_created\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vtimeCreated\"\x87\x02\n" +
+	"\ftime_created\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vtimeCreated\"\x86\x02\n" +
 	"\x04Task\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12.\n" +
 	"\x13minutes_to_complete\x18\x02 \x01(\x04R\x11minutesToComplete\x12+\n" +
 	"\bpriority\x18\x03 \x01(\x0e2\x0f.tasks.PriorityR\bpriority\x12%\n" +
-	"\x06status\x18\x04 \x01(\x0e2\r.tasks.StatusR\x06status\x12\x12\n" +
-	"\x04tags\x18\x05 \x03(\tR\x04tags\x12$\n" +
-	"\rprerequisites\x18\x06 \x03(\x04R\rprerequisites\x12-\n" +
-	"\taddendums\x18\a \x03(\v2\x0f.tasks.addendumR\taddendums*U\n" +
+	"\x06status\x18\x04 \x01(\x0e2\r.tasks.StatusR\x06status\x12,\n" +
+	"\x11numberOfAddendums\x18\x05 \x01(\x04R\x11numberOfAddendums\x12\x12\n" +
+	"\x04tags\x18\x06 \x03(\tR\x04tags\x12$\n" +
+	"\rprerequisites\x18\a \x03(\x04R\rprerequisites*U\n" +
 	"\bPriority\x12\x13\n" +
 	"\x0fDO_BEFORE_SLEEP\x10\x00\x12\x12\n" +
 	"\x0eDO_IMMEDIATELY\x10\x01\x12\r\n" +
@@ -799,11 +799,11 @@ const file_tasks_v1_tasks_proto_rawDesc = "" +
 	"\x06Status\x12\f\n" +
 	"\bTRACKING\x10\x00\x12\r\n" +
 	"\tCOMPLETED\x10\x01\x12\v\n" +
-	"\aBACKLOG\x10\x022\xce\x02\n" +
+	"\aBACKLOG\x10\x022\xcc\x02\n" +
 	"\x05tasks\x12:\n" +
 	"\aPutTask\x12\x15.tasks.PutTaskRequest\x1a\x16.tasks.PutTaskResponse\"\x00\x12?\n" +
-	"\bGetTasks\x12\x16.tasks.GetTasksRequest\x1a\x17.tasks.GetTasksResponse\"\x000\x01\x12K\n" +
-	"\fDescribeTask\x12\x1a.tasks.DescribeTaskRequest\x1a\x1b.tasks.DescribeTaskResponse\"\x000\x01\x12=\n" +
+	"\bGetTasks\x12\x16.tasks.GetTasksRequest\x1a\x17.tasks.GetTasksResponse\"\x000\x01\x12I\n" +
+	"\fDescribeTask\x12\x1a.tasks.DescribeTaskRequest\x1a\x1b.tasks.DescribeTaskResponse\"\x00\x12=\n" +
 	"\bMarkTask\x12\x16.tasks.MarkTaskRequest\x1a\x17.tasks.MarkTaskResponse\"\x00\x12<\n" +
 	"\aGetTags\x12\x15.tasks.GetTagsRequest\x1a\x16.tasks.GetTagsResponse\"\x000\x01B9Z7github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspbb\x06proto3"
 
@@ -834,7 +834,7 @@ var file_tasks_v1_tasks_proto_goTypes = []any{
 	(*MarkTaskResponse)(nil),      // 9: tasks.MarkTaskResponse
 	(*GetTagsRequest)(nil),        // 10: tasks.GetTagsRequest
 	(*GetTagsResponse)(nil),       // 11: tasks.GetTagsResponse
-	(*Addendum)(nil),              // 12: tasks.addendum
+	(*Addendum)(nil),              // 12: tasks.Addendum
 	(*Task)(nil),                  // 13: tasks.Task
 	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
 }
@@ -843,11 +843,11 @@ var file_tasks_v1_tasks_proto_depIdxs = []int32{
 	1,  // 1: tasks.GetTasksRequest.status:type_name -> tasks.Status
 	13, // 2: tasks.GetTasksResponse.task:type_name -> tasks.Task
 	13, // 3: tasks.DescribeTaskResponse.task:type_name -> tasks.Task
-	14, // 4: tasks.GetTagsResponse.write_time:type_name -> google.protobuf.Timestamp
-	14, // 5: tasks.addendum.time_created:type_name -> google.protobuf.Timestamp
-	0,  // 6: tasks.Task.priority:type_name -> tasks.Priority
-	1,  // 7: tasks.Task.status:type_name -> tasks.Status
-	12, // 8: tasks.Task.addendums:type_name -> tasks.addendum
+	12, // 4: tasks.DescribeTaskResponse.addendum:type_name -> tasks.Addendum
+	14, // 5: tasks.GetTagsResponse.write_time:type_name -> google.protobuf.Timestamp
+	14, // 6: tasks.Addendum.time_created:type_name -> google.protobuf.Timestamp
+	0,  // 7: tasks.Task.priority:type_name -> tasks.Priority
+	1,  // 8: tasks.Task.status:type_name -> tasks.Status
 	2,  // 9: tasks.tasks.PutTask:input_type -> tasks.PutTaskRequest
 	4,  // 10: tasks.tasks.GetTasks:input_type -> tasks.GetTasksRequest
 	6,  // 11: tasks.tasks.DescribeTask:input_type -> tasks.DescribeTaskRequest
