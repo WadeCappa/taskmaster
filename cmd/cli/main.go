@@ -31,6 +31,7 @@ var commands = map[string]func() error{
 	"get":      get,
 	"describe": describe,
 	"mark":     mark,
+	"get-tags": getTags,
 }
 
 func main() {
@@ -248,6 +249,39 @@ func mark() error {
 		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to mark task: %w", err)
+	}
+	return nil
+}
+
+func getTags() error {
+	var hostname string
+	var bearer string
+	var secure bool
+	getTags := flag.NewFlagSet("", flag.ExitOnError)
+	connectionFlags(getTags, &hostname, &secure, &bearer)
+	getTags.Parse(os.Args[2:])
+
+	if err := withTasksClient(hostname, secure, func(client taskspb.TasksClient) error {
+		stream, err := client.GetTags(getContext(bearer), &taskspb.GetTagsRequest{})
+		if err != nil {
+			return fmt.Errorf("calling task client: %w", err)
+		}
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("could not receive next entry: %w", err)
+			}
+			jsonBytes, err := protojson.Marshal(res)
+			if err != nil {
+				return fmt.Errorf("converting to json: %w", err)
+			}
+			fmt.Println(string(jsonBytes))
+		}
+	}); err != nil {
+		return fmt.Errorf("failed to get tags: %w", err)
 	}
 	return nil
 }
