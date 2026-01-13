@@ -14,7 +14,7 @@ import (
 const (
 	insertTaskQuery           = "insert into tasks (task_id, user_id, fields, priority, status) values (nextval('task_ids'), $1, $2, $3, $4) returning task_id"
 	getTasksWithTags          = "select t.task_id, t.fields, t.priority, t.status from tasks t join tags_to_tasks ttt on t.task_id = ttt.task_id join tags tg on tg.tag_id = ttt.tag_id where t.user_id = $1 and tg.name = any ($2) and t.status = $3 group by t.task_id having count(distinct tg.tag_id) = cardinality($2) order by priority;"
-	getTasksWithIgnoringTasks = "select t.task_id, t.fields, t.priority, t.status from tasks t join tags_to_tasks ttt on t.task_id = ttt.task_id join tags tg on tg.tag_id = ttt.tag_id where t.user_id = $1 and t.status = $2 group by t.task_id order by priority"
+	getTasksWithIgnoringTags  = "select t.task_id, t.fields, t.priority, t.status from tasks t join tags_to_tasks ttt on t.task_id = ttt.task_id join tags tg on tg.tag_id = ttt.tag_id where t.user_id = $1 and t.status = $2 group by t.task_id order by priority"
 	describeTask              = "select t.fields, t.priority, t.status from tasks t where t.task_id = $1 and t.user_id = $2"
 	getTagsForTasksQuery      = "select distinct tg.tag_id, ttt.task_id, tg.name from tags tg join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where ttt.task_id = any($1)"
 	getAddendumsForTasksQuery = "select a.task_id, a.content, a.write_time from addendums a where a.task_id = any($1) order by a.write_time"
@@ -22,6 +22,7 @@ const (
 	insertTag                 = "insert into tags (user_id, tag_id, write_time, name) values ($1, nextval('tag_ids'), now(), $2) returning tag_id, name"
 	insertTagsToTasks         = "insert into tags_to_tasks (task_id, tag_id) values ($1, $2)"
 	insertAddundum            = "insert into addendums (addendum_id, user_id, task_id, content, write_time) values (nextval('addendum_ids'), $1, $2, $3, now())"
+	getTags                   = "select tg.tag_id, tg.name, tg.write_time, count(ttt.task_id) from tags tg left join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where tg.user_id = $1 group by tg.tag_id order by tg.tag_id;"
 )
 
 type Database struct {
@@ -84,7 +85,7 @@ func (e *Database) Get(
 		if len(tags) > 0 {
 			rows, err = c.Query(ctx, getTasksWithTags, userId, tags, status)
 		} else {
-			rows, err = c.Query(ctx, getTasksWithIgnoringTasks, userId, status)
+			rows, err = c.Query(ctx, getTasksWithIgnoringTags, userId, status)
 		}
 
 		if err != nil {
@@ -208,6 +209,33 @@ func (e *Database) Put(
 		return 0, fmt.Errorf("calling db for insert task request: %w", err)
 	}
 	return TaskId(*newTaskId), nil
+}
+
+func (e *Database) GetTags(
+	ctx context.Context,
+	userId auth.UserId,
+) ([]FullTag, error) {
+	var res []FullTag
+	if err := store.Call(ctx, e.psqlUrl, func(c *pgx.Conn) error {
+		rows, err := c.Query(ctx, getTags, userId)
+		if err != nil {
+			return fmt.Errorf("getting tags rows: %w", err)
+		}
+		for rows.Next() {
+			var tagId uint64
+			var name string
+			var writeTime time.Time
+			var count uint64
+			if err := rows.Scan(&tagId, &name, &writeTime, &count); err != nil {
+				return fmt.Errorf("scanning next tag: %w", err)
+			}
+			res = append(res, FullTag{tagId, name, writeTime, count})
+		}
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("calling db for tags: %w", err)
+	}
+	return res, nil
 }
 
 func getTagsForTasks(

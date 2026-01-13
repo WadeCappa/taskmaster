@@ -22,4 +22,4 @@ from tasks t
 where t.task_id = $1
 and t.user_id = $2
 
-select 
+select tg.tag_id, tg.name, tg.write_time, count(ttt.task_id) from tags tg left join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where tg.user_id = 101 group by tg.tag_id order by tg.tag_id;

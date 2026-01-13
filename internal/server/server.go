@@ -9,6 +9,7 @@ import (
 	"github.com/WadeCappa/taskmaster/internal/database"
 	"github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type tasksServer struct {
@@ -126,4 +127,27 @@ func (s *tasksServer) MarkTask(
 		return nil, fmt.Errorf("setting addendum for task: %w", err)
 	}
 	return &taskspb.MarkTaskResponse{}, nil
+}
+
+func (s *tasksServer) GetTags(
+	request *taskspb.GetTagsRequest,
+	stream grpc.ServerStreamingServer[taskspb.GetTagsResponse],
+) error {
+	userId, err := s.auth.GetUserId(stream.Context())
+	if err != nil {
+		return fmt.Errorf("getting user Id: %w", err)
+	}
+	tags, err := s.db.GetTags(stream.Context(), userId)
+	if err != nil {
+		return fmt.Errorf("getting tags from DB: %w", err)
+	}
+	for _, t := range tags {
+		stream.Send(&taskspb.GetTagsResponse{
+			TagId:     t.Id,
+			Name:      t.Name,
+			WriteTime: timestamppb.New(t.TimeCreated),
+			Count:     t.Count,
+		})
+	}
+	return nil
 }

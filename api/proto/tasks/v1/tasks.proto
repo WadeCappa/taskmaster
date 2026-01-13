@@ -10,6 +10,7 @@ service tasks {
   rpc GetTasks (GetTasksRequest) returns (stream GetTasksResponse) {}
   rpc DescribeTask (DescribeTaskRequest) returns (stream DescribeTaskResponse) {}
   rpc MarkTask (MarkTaskRequest) returns (MarkTaskResponse) {}
+  rpc GetTags (GetTagsRequest) returns (stream GetTagsResponse) {}
 }
 
 message PutTaskRequest {
@@ -47,6 +48,15 @@ message MarkTaskRequest {
 }
 
 message MarkTaskResponse {}
+
+message GetTagsRequest {}
+
+message GetTagsResponse {
+  uint64 tagId = 1;
+  string name = 2;
+  google.protobuf.Timestamp write_time = 3;
+  uint64 count = 4;
+}
 
 enum Priority {
   DO_BEFORE_SLEEP = 0;

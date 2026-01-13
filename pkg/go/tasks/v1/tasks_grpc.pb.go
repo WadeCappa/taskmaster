@@ -23,6 +23,7 @@ const (
 	Tasks_GetTasks_FullMethodName     = "/tasks.tasks/GetTasks"
 	Tasks_DescribeTask_FullMethodName = "/tasks.tasks/DescribeTask"
 	Tasks_MarkTask_FullMethodName     = "/tasks.tasks/MarkTask"
+	Tasks_GetTags_FullMethodName      = "/tasks.tasks/GetTags"
 )
 
 // TasksClient is the client API for Tasks service.
@@ -33,6 +34,7 @@ type TasksClient interface {
 	GetTasks(ctx context.Context, in *GetTasksRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTasksResponse], error)
 	DescribeTask(ctx context.Context, in *DescribeTaskRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DescribeTaskResponse], error)
 	MarkTask(ctx context.Context, in *MarkTaskRequest, opts ...grpc.CallOption) (*MarkTaskResponse, error)
+	GetTags(ctx context.Context, in *GetTagsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTagsResponse], error)
 }
 
 type tasksClient struct {
@@ -101,6 +103,25 @@ func (c *tasksClient) MarkTask(ctx context.Context, in *MarkTaskRequest, opts ..
 	return out, nil
 }
 
+func (c *tasksClient) GetTags(ctx context.Context, in *GetTagsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTagsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Tasks_ServiceDesc.Streams[2], Tasks_GetTags_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[GetTagsRequest, GetTagsResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Tasks_GetTagsClient = grpc.ServerStreamingClient[GetTagsResponse]
+
 // TasksServer is the server API for Tasks service.
 // All implementations must embed UnimplementedTasksServer
 // for forward compatibility.
@@ -109,6 +130,7 @@ type TasksServer interface {
 	GetTasks(*GetTasksRequest, grpc.ServerStreamingServer[GetTasksResponse]) error
 	DescribeTask(*DescribeTaskRequest, grpc.ServerStreamingServer[DescribeTaskResponse]) error
 	MarkTask(context.Context, *MarkTaskRequest) (*MarkTaskResponse, error)
+	GetTags(*GetTagsRequest, grpc.ServerStreamingServer[GetTagsResponse]) error
 	mustEmbedUnimplementedTasksServer()
 }
 
@@ -130,6 +152,9 @@ func (UnimplementedTasksServer) DescribeTask(*DescribeTaskRequest, grpc.ServerSt
 }
 func (UnimplementedTasksServer) MarkTask(context.Context, *MarkTaskRequest) (*MarkTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkTask not implemented")
+}
+func (UnimplementedTasksServer) GetTags(*GetTagsRequest, grpc.ServerStreamingServer[GetTagsResponse]) error {
+	return status.Error(codes.Unimplemented, "method GetTags not implemented")
 }
 func (UnimplementedTasksServer) mustEmbedUnimplementedTasksServer() {}
 func (UnimplementedTasksServer) testEmbeddedByValue()               {}
@@ -210,6 +235,17 @@ func _Tasks_MarkTask_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Tasks_GetTags_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetTagsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TasksServer).GetTags(m, &grpc.GenericServerStream[GetTagsRequest, GetTagsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Tasks_GetTagsServer = grpc.ServerStreamingServer[GetTagsResponse]
+
 // Tasks_ServiceDesc is the grpc.ServiceDesc for Tasks service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -235,6 +271,11 @@ var Tasks_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "DescribeTask",
 			Handler:       _Tasks_DescribeTask_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetTags",
+			Handler:       _Tasks_GetTags_Handler,
 			ServerStreams: true,
 		},
 	},
