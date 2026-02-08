@@ -11,4 +11,4 @@ FROM scratch
 COPY --from=build /app/build build
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-CMD ["/build"]
+CMD ["/build" "--auth-hostname" "auth.wcappa.com" "--auth-conn-secure" "true"]

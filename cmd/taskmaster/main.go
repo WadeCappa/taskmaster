@@ -21,7 +21,7 @@ var (
 	port                 = flag.Int("port", 6100, "The server port")
 	authHostname         = flag.String("auth-hostname", "localhost:50051", "The hostname for the auth server")
 	authConnectionSecure = flag.Bool("auth-conn-secure", false, "Set this flag if the connection to the auth host is through TLS")
-	psqlHostname         = flag.String("psql-hostname", "postgres://postgres:pass@localhost:5432/taskmaster_db", "Set this flag to the hostname of your postgres db")
+	psqlHostname         = flag.String("psql-hostname", "postgres://postgres:pass@postgres:5432/taskmaster_db", "Set this flag to the hostname of your postgres db")
 )
 
 func main() {

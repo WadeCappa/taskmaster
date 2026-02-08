@@ -1,18 +1,12 @@
 services:
-  taskmaster:
-    build:
-      context: .
-      dockerfile: taskmaster-dockerfile
-    depends_on:
-      - postgres
-    ports:
-      - "6100:6100"
   postgres:
     build:
       context: .
       dockerfile: postgres-dockerfile
     hostname: postgres
     user: postgres
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 1s
