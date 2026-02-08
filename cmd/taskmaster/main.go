@@ -32,6 +32,7 @@ func main() {
 	}
 	s := grpc.NewServer()
 
+	log.Printf("looking at psql hostname of %s and authmaster hostname of %s", *psqlHostname, *authHostname)
 	db := database.NewDatabase(*psqlHostname)
 
 	if err := withConnection(*authHostname, *authConnectionSecure, func(ac authmaster.AuthmasterClient) error {
