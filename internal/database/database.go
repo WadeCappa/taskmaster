@@ -150,16 +150,17 @@ func (e *Database) Put(
 		if err != nil {
 			return nil, fmt.Errorf("getting tags from names on task: %w", err)
 		}
-		defer rows.Close()
 		seen := map[Tag]uint64{}
 		for rows.Next() {
 			var tagId uint64
 			var name string
 			if err := rows.Scan(&tagId, &name); err != nil {
+				rows.Close()
 				return nil, fmt.Errorf("scanning next tag: %w", err)
 			}
 			seen[Tag(name)] = tagId
 		}
+		rows.Close()
 
 		batch := &pgx.Batch{}
 		for _, t := range task.tags {
@@ -170,16 +171,17 @@ func (e *Database) Put(
 		}
 		if batch.Len() > 0 {
 			batchResult := c.SendBatch(ctx, batch)
-			defer batchResult.Close()
 			for i := 0; i < batch.Len(); i++ {
 				var tagId uint64
 				var name string
 				err := batchResult.QueryRow().Scan(&tagId, &name)
 				if err != nil {
+					batchResult.Close()
 					return nil, fmt.Errorf("executing batch tag insert: %w", err)
 				}
 				seen[Tag(name)] = tagId
 			}
+			batchResult.Close()
 		}
 
 		var newTaskId uint64
