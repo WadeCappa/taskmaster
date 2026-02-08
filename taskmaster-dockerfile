@@ -1,0 +1,14 @@
+# Build stage
+FROM golang:1.25 AS build
+
+COPY . .
+
+RUN go build -ldflags="-linkmode external -extldflags -static" -tags netgo -o /app/build ./cmd/taskmaster/main.go
+
+# Deploy stage
+FROM scratch 
+
+COPY --from=build /app/build build
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+CMD ["/build"]

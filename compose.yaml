@@ -1,4 +1,12 @@
 services:
+  taskmaster:
+    build:
+      context: .
+      dockerfile: taskmaster-dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "6100:6100"
   postgres:
     build:
       context: .
