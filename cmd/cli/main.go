@@ -214,15 +214,11 @@ func mark() error {
 	var secure bool
 	markCmd := flag.NewFlagSet("", flag.ExitOnError)
 	connectionFlags(markCmd, &hostname, &secure, &bearer)
+
+	taskId := markCmd.Uint64("task-id", 0, "the ID of the task that you want to mark")
 	markCmd.Parse(os.Args[2:])
 
 	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("taskId: \n")
-	taskId, err := readUint64(reader, "task-id")
-	if err != nil {
-		return fmt.Errorf("failed to read taskId: %w", err)
-	}
 
 	fmt.Print("message: \n")
 	input, err := reader.ReadString('\n')
@@ -234,7 +230,7 @@ func mark() error {
 	if err := withTasksClient(hostname, secure, func(client taskspb.TasksClient) error {
 		if _, err := client.MarkTask(getContext(bearer), &taskspb.MarkTaskRequest{
 			Content: content,
-			TaskId:  taskId,
+			TaskId:  *taskId,
 		}); err != nil {
 			return fmt.Errorf("calling task client: %w", err)
 		}
