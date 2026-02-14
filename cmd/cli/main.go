@@ -12,6 +12,10 @@ import (
 	"strconv"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/WadeCappa/taskmaster/internal/calls"
+	"github.com/WadeCappa/taskmaster/internal/tui"
 	taskspb "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -32,6 +36,7 @@ var commands = map[string]func() error{
 	"describe": describe,
 	"mark":     mark,
 	"get-tags": getTags,
+	"tui":      runTui,
 }
 
 func main() {
@@ -71,28 +76,18 @@ func get() error {
 			tagsToSend = strings.Split(*tags, ",")
 		}
 		ctx := getContext(bearer)
-		task, err := client.GetTasks(ctx, &taskspb.GetTasksRequest{
-			Status: taskspb.Status(*statusId),
-			Tags:   tagsToSend,
-		})
+		tasks, err := calls.Get(ctx, client, tagsToSend, taskspb.Status(*statusId))
 		if err != nil {
 			return fmt.Errorf("calling client: %w", err)
 		}
-		for {
-			res, err := task.Recv()
-			if err == io.EOF {
-				return nil
-			}
-
-			if err != nil {
-				return fmt.Errorf("could not receive next entry: %w", err)
-			}
-			jsonBytes, err := protojson.Marshal(res)
+		for _, task := range tasks {
+			jsonBytes, err := protojson.Marshal(task)
 			if err != nil {
 				return fmt.Errorf("converting to json: %w", err)
 			}
 			fmt.Println(string(jsonBytes))
 		}
+		return nil
 	}); err != nil {
 		return fmt.Errorf("getting task: %w", err)
 	}
@@ -302,6 +297,28 @@ func getContext(bearer string) context.Context {
 		context.Background(),
 		metadata.Pairs("Authorization", bearer),
 	)
+}
+
+func runTui() error {
+	tuiCmd := flag.NewFlagSet("", flag.ExitOnError)
+	var hostname string
+	var bearer string
+	var secure bool
+	connectionFlags(tuiCmd, &hostname, &secure, &bearer)
+	tuiCmd.Parse(os.Args[2:])
+
+	if err := withTasksClient(hostname, secure, func(client taskspb.TasksClient) error {
+		ctx := getContext(bearer)
+		model := tui.NewModel(client, ctx)
+		p := tea.NewProgram(model, tea.WithAltScreen())
+		if _, err := p.Run(); err != nil {
+			return fmt.Errorf("running tui: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("running tui with client client: %w", err)
+	}
+	return nil
 }
 
 func readUint64(reader *bufio.Reader, desc string) (uint64, error) {
