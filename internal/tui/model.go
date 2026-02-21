@@ -4,7 +4,18 @@ import (
 	"context"
 
 	taskspb "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
+	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+)
+
+type uiMode int
+
+const (
+	modeNormal        uiMode = iota // j/k navigate tasks; h/l switch status
+	modeDetailFocused               // j/k scroll detail panel; Esc → normal
+	modeAddendumInput               // composing multi-line addendum; ctrl+s submit, Esc cancel
+	modeStatusSelect                // picking new status from menu; Enter confirm, Esc cancel
+	modeTagEdit                     // existing tag editing
 )
 
 type Model struct {
@@ -14,9 +25,13 @@ type Model struct {
 	activeStatus int
 	tags         []string
 
-	editingTags bool
-	tagInput    string
-	savedTags   []string
+	mode      uiMode
+	tagInput  string
+	savedTags []string
+
+	addendumTextarea textarea.Model
+	statusCursor     int
+	detailOffset     int
 
 	tasks          []taskEntry
 	taskCursor     int
@@ -39,9 +54,13 @@ type tuiState struct {
 }
 
 func NewModel(client taskspb.TasksClient, ctx context.Context) Model {
+	ta := textarea.New()
+	ta.Placeholder = "Write addendum..."
+	ta.CharLimit = 0
 	return Model{
-		client: client,
-		ctx:    ctx,
+		client:           client,
+		ctx:              ctx,
+		addendumTextarea: ta,
 	}
 }
 

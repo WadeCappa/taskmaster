@@ -2,7 +2,9 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	taskspb "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
 )
@@ -38,4 +40,57 @@ func formatDuration(minutes uint64) string {
 		return fmt.Sprintf("%dh", h)
 	}
 	return fmt.Sprintf("%dh%dm", h, m)
+}
+
+// wordWrapLines wraps s to at most width runes per line, breaking at spaces.
+func wordWrapLines(s string, width int) []string {
+	if width <= 0 {
+		return []string{s}
+	}
+
+	var result []string
+	words := strings.Fields(s)
+	if len(words) == 0 {
+		return []string{""}
+	}
+
+	line := ""
+	lineLen := 0
+
+	for _, word := range words {
+		wordLen := utf8.RuneCountInString(word)
+		if wordLen > width {
+			// Hard-break long words
+			if lineLen > 0 {
+				result = append(result, line)
+				line = ""
+				lineLen = 0
+			}
+			runes := []rune(word)
+			for len(runes) > 0 {
+				take := width
+				if take > len(runes) {
+					take = len(runes)
+				}
+				result = append(result, string(runes[:take]))
+				runes = runes[take:]
+			}
+			continue
+		}
+		if lineLen == 0 {
+			line = word
+			lineLen = wordLen
+		} else if lineLen+1+wordLen <= width {
+			line += " " + word
+			lineLen += 1 + wordLen
+		} else {
+			result = append(result, line)
+			line = word
+			lineLen = wordLen
+		}
+	}
+	if lineLen > 0 {
+		result = append(result, line)
+	}
+	return result
 }
