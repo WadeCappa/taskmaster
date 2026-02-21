@@ -147,3 +147,19 @@ func (s *tasksServer) GetTags(
 	}
 	return nil
 }
+
+func (s *tasksServer) SetStatus(
+	ctx context.Context,
+	request *taskspb.SetStatusRequest,
+) (*taskspb.SetStatusResponse, error) {
+	userId, err := s.auth.GetUserId(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting user Id: %w", err)
+	}
+	if err := s.db.SetStatus(
+		ctx, database.Status(request.GetStatus()), database.TaskId(request.GetTaskId()), userId,
+	); err != nil {
+		return nil, fmt.Errorf("updating task status: %w", err)
+	}
+	return &taskspb.SetStatusResponse{}, nil
+}

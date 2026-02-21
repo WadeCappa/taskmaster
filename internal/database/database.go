@@ -23,7 +23,8 @@ const (
 	insertTag                    = "insert into tags (user_id, tag_id, write_time, name) values ($1, nextval('tag_ids'), now(), $2) returning tag_id, name"
 	insertTagsToTasks            = "insert into tags_to_tasks (task_id, tag_id) values ($1, $2)"
 	insertAddundum               = "insert into addendums (addendum_id, user_id, task_id, content, write_time) values (nextval('addendum_ids'), $1, $2, $3, now())"
-	getTags                      = "select tg.tag_id, tg.name, tg.write_time, count(ttt.task_id) from tags tg left join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where tg.user_id = $1 group by tg.tag_id order by tg.tag_id;"
+	getTags                      = "select tg.tag_id, tg.name, tg.write_time, count(ttt.task_id) from tags tg left join tags_to_tasks ttt on tg.tag_id = ttt.tag_id where tg.user_id = $1 group by tg.tag_id order by tg.tag_id"
+	setStatus                    = "update tasks set status = $1 where task_id = $2 and user_id = $3"
 )
 
 type Database struct {
@@ -244,6 +245,23 @@ func (e *Database) GetTags(
 		return nil, fmt.Errorf("calling db for tags: %w", err)
 	}
 	return res, nil
+}
+
+func (e *Database) SetStatus(
+	ctx context.Context,
+	newStatus Status,
+	taskId TaskId,
+	userId auth.UserId,
+) error {
+	if err := store.Call(ctx, e.psqlUrl, func(c *pgx.Conn) error {
+		if _, err := c.Exec(ctx, setStatus, newStatus, taskId, userId); err != nil {
+			return fmt.Errorf("setting status in postgres: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("calling store to update status: %w", err)
+	}
+	return nil
 }
 
 func getTagsForTasks(
