@@ -11,6 +11,7 @@ service tasks {
   rpc DescribeTask (DescribeTaskRequest) returns (DescribeTaskResponse) {}
   rpc MarkTask (MarkTaskRequest) returns (MarkTaskResponse) {}
   rpc GetTags (GetTagsRequest) returns (stream GetTagsResponse) {}
+  rpc SetStatus (SetStatusRequest) returns (SetStatusResponse) {}
 }
 
 message PutTaskRequest {
@@ -85,3 +86,10 @@ message Task {
   repeated string tags = 6;
   repeated uint64 prerequisites = 7;
 }
+
+message SetStatusRequest {
+  uint64 task_id = 1;
+  Status status = 2;
+}
+
+message SetStatusResponse {}

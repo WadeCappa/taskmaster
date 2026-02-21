@@ -24,6 +24,7 @@ const (
 	Tasks_DescribeTask_FullMethodName = "/tasks.tasks/DescribeTask"
 	Tasks_MarkTask_FullMethodName     = "/tasks.tasks/MarkTask"
 	Tasks_GetTags_FullMethodName      = "/tasks.tasks/GetTags"
+	Tasks_SetStatus_FullMethodName    = "/tasks.tasks/SetStatus"
 )
 
 // TasksClient is the client API for Tasks service.
@@ -35,6 +36,7 @@ type TasksClient interface {
 	DescribeTask(ctx context.Context, in *DescribeTaskRequest, opts ...grpc.CallOption) (*DescribeTaskResponse, error)
 	MarkTask(ctx context.Context, in *MarkTaskRequest, opts ...grpc.CallOption) (*MarkTaskResponse, error)
 	GetTags(ctx context.Context, in *GetTagsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTagsResponse], error)
+	SetStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error)
 }
 
 type tasksClient struct {
@@ -113,6 +115,16 @@ func (c *tasksClient) GetTags(ctx context.Context, in *GetTagsRequest, opts ...g
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Tasks_GetTagsClient = grpc.ServerStreamingClient[GetTagsResponse]
 
+func (c *tasksClient) SetStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetStatusResponse)
+	err := c.cc.Invoke(ctx, Tasks_SetStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TasksServer is the server API for Tasks service.
 // All implementations must embed UnimplementedTasksServer
 // for forward compatibility.
@@ -122,6 +134,7 @@ type TasksServer interface {
 	DescribeTask(context.Context, *DescribeTaskRequest) (*DescribeTaskResponse, error)
 	MarkTask(context.Context, *MarkTaskRequest) (*MarkTaskResponse, error)
 	GetTags(*GetTagsRequest, grpc.ServerStreamingServer[GetTagsResponse]) error
+	SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error)
 	mustEmbedUnimplementedTasksServer()
 }
 
@@ -146,6 +159,9 @@ func (UnimplementedTasksServer) MarkTask(context.Context, *MarkTaskRequest) (*Ma
 }
 func (UnimplementedTasksServer) GetTags(*GetTagsRequest, grpc.ServerStreamingServer[GetTagsResponse]) error {
 	return status.Error(codes.Unimplemented, "method GetTags not implemented")
+}
+func (UnimplementedTasksServer) SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetStatus not implemented")
 }
 func (UnimplementedTasksServer) mustEmbedUnimplementedTasksServer() {}
 func (UnimplementedTasksServer) testEmbeddedByValue()               {}
@@ -244,6 +260,24 @@ func _Tasks_GetTags_Handler(srv interface{}, stream grpc.ServerStream) error {
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Tasks_GetTagsServer = grpc.ServerStreamingServer[GetTagsResponse]
 
+func _Tasks_SetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TasksServer).SetStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Tasks_SetStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TasksServer).SetStatus(ctx, req.(*SetStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Tasks_ServiceDesc is the grpc.ServiceDesc for Tasks service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -262,6 +296,10 @@ var Tasks_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MarkTask",
 			Handler:    _Tasks_MarkTask_Handler,
+		},
+		{
+			MethodName: "SetStatus",
+			Handler:    _Tasks_SetStatus_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

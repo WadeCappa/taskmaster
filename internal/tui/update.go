@@ -5,27 +5,29 @@ import (
 	"strings"
 
 	"github.com/WadeCappa/taskmaster/internal/calls"
+	"github.com/WadeCappa/taskmaster/internal/types"
 	taskspb "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
+func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
+	switch message := message.(type) {
 	case tea.KeyMsg:
-		return m.handleKey(msg)
+		return m.handleKey(message)
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
+		m.tui.width = message.Width
+		m.tui.height = message.Height
 		return m, nil
-	case tasksLoadedMsg:
+	case maybeTasksLoadedEvent:
 		m.tasksLoading = false
-		if msg.err != nil {
-			m.tasksErr = msg.err
+		tasks, err := message.result.Unwrap()
+		if err != nil {
+			m.tasksErr = err
 			m.tasks = nil
 			return m, nil
 		}
 		m.tasksErr = nil
-		m.tasks = msg.tasks
+		m.tasks = tasks
 		m.taskCursor = 0
 		m.taskListOffset = 0
 		m.detail = nil
@@ -36,29 +38,33 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.fetchDetailCmd(m.tasks[0].id)
 		}
 		return m, nil
-	case taskDetailLoadedMsg:
-		if msg.taskId != m.detailTaskId {
-			return m, nil // stale response
-		}
-		m.detailLoading = false
-		if msg.err != nil {
-			m.detailErr = msg.err
+	case maybeTaskDetailLoadedEvent:
+		event, err := message.result.Unwrap()
+		if err != nil {
+			m.detailErr = err
 			m.detail = nil
 			return m, nil
 		}
+		// We can race here and not see the results of a details call until a user has
+		// already selected the next task. In this case, we should just throw away the
+		// result of this call.
+		if event.taskId != m.detailTaskId {
+			return m, nil
+		}
+		m.detailLoading = false
 		m.detailErr = nil
-		m.detail = msg.detail
+		m.detail = event.detail
 		return m, nil
 	}
 	return m, nil
 }
 
-func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) handleKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 	if m.editingTags {
-		return m.handleTagEditKey(msg)
+		return m.handleTagEditKey(message)
 	}
 
-	switch msg.String() {
+	switch message.String() {
 	case "q", "ctrl+c":
 		return m, tea.Quit
 	case "j", "down":
@@ -98,8 +104,8 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) handleTagEditKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch msg.String() {
+func (m Model) handleTagEditKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch message.String() {
 	case "enter":
 		m.editingTags = false
 		input := strings.TrimSpace(m.tagInput)
@@ -128,8 +134,8 @@ func (m Model) handleTagEditKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "ctrl+c":
 		return m, tea.Quit
 	default:
-		if len(msg.String()) == 1 {
-			m.tagInput += msg.String()
+		if len(message.String()) == 1 {
+			m.tagInput += message.String()
 		}
 		return m, nil
 	}
@@ -153,21 +159,23 @@ func (m *Model) refetch() tea.Cmd {
 
 func (m Model) listHeight() int {
 	// height minus top bar (3) minus help bar (2) minus panel borders (2)
-	return max(m.height-7, 1)
+	return max(m.tui.height-7, 1)
 }
 
 func (m Model) fetchTasksCmd() tea.Cmd {
 	return func() tea.Msg {
 		responses, err := calls.Get(m.ctx, m.client, m.tags, taskspb.Status(m.activeStatus))
 		if err != nil {
-			return tasksLoadedMsg{err: fmt.Errorf("getting tasks from server: %w", err)}
+			return maybeTasksLoadedEvent{
+				result: types.Failure[[]taskEntry](fmt.Errorf("getting tasks from server: %w", err)),
+			}
 		}
 
 		tasks := make([]taskEntry, len(responses))
 		for index, resp := range responses {
 			tasks[index] = taskFromWire(resp)
 		}
-		return tasksLoadedMsg{tasks: tasks}
+		return maybeTasksLoadedEvent{types.Success(tasks)}
 	}
 }
 
@@ -177,10 +185,16 @@ func (m Model) fetchDetailCmd(taskId uint64) tea.Cmd {
 			TaskId: taskId,
 		})
 		if err != nil {
-			return taskDetailLoadedMsg{taskId: taskId, err: fmt.Errorf("calling DescribeTask: %w", err)}
+			return maybeTaskDetailLoadedEvent{
+				result: types.Failure[taskDetailLoadedEvent](fmt.Errorf("getting task details from server: %w", err)),
+			}
 		}
-
 		detail := detailFromWire(resp)
-		return taskDetailLoadedMsg{taskId: taskId, detail: &detail}
+		return maybeTaskDetailLoadedEvent{
+			types.Success(taskDetailLoadedEvent{
+				taskId: taskId,
+				detail: &detail,
+			}),
+		}
 	}
 }

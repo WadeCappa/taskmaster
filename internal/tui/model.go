@@ -16,7 +16,7 @@ type Model struct {
 
 	editingTags bool
 	tagInput    string
-	savedTags   []string // for restoring on esc
+	savedTags   []string
 
 	tasks          []taskEntry
 	taskCursor     int
@@ -30,6 +30,10 @@ type Model struct {
 	tasksErr     error
 	detailErr    error
 
+	tui tuiState
+}
+
+type tuiState struct {
 	width  int
 	height int
 }

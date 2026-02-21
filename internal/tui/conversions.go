@@ -24,21 +24,6 @@ func priorityLabel(p taskspb.Priority) string {
 	}
 }
 
-func priorityName(p taskspb.Priority) string {
-	switch p {
-	case taskspb.Priority_DO_BEFORE_SLEEP:
-		return "Do Before Sleep"
-	case taskspb.Priority_DO_IMMEDIATELY:
-		return "Do Immediately"
-	case taskspb.Priority_SHOULD_DO:
-		return "Should Do"
-	case taskspb.Priority_EVENTUALLY_DO:
-		return "Eventually Do"
-	default:
-		return "Unknown"
-	}
-}
-
 func formatDuration(minutes uint64) string {
 	if minutes == 0 {
 		return "-"

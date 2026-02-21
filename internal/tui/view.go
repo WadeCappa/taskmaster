@@ -9,7 +9,7 @@ import (
 )
 
 func (m Model) View() string {
-	if m.width == 0 || m.height == 0 {
+	if m.tui.width == 0 || m.tui.height == 0 {
 		return "Loading..."
 	}
 
@@ -44,7 +44,7 @@ func (m Model) viewTopBar() string {
 	bar := statusSection + "  | " + tagSection
 
 	style := lipgloss.NewStyle().
-		Width(m.width).
+		Width(m.tui.width).
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder(), false, false, true, false).
 		BorderForeground(lipgloss.Color("241"))
@@ -52,8 +52,8 @@ func (m Model) viewTopBar() string {
 }
 
 func (m Model) viewPanels() string {
-	leftWidth := m.width/2 - 2
-	rightWidth := m.width - leftWidth - 4
+	leftWidth := m.tui.width/2 - 2
+	rightWidth := m.tui.width - leftWidth - 4
 	panelHeight := m.listHeight()
 
 	left := m.viewTaskList(leftWidth, panelHeight)
@@ -131,7 +131,7 @@ func (m Model) viewDetail(width, height int) string {
 	d := m.detail
 	var lines []string
 	lines = append(lines, detailLabel.Render("Name: ")+d.name)
-	lines = append(lines, detailLabel.Render("Priority: ")+priorityName(d.priority))
+	lines = append(lines, detailLabel.Render("Priority: ")+taskspb.Priority_name[int32(d.priority)])
 	lines = append(lines, detailLabel.Render("Status: ")+taskspb.Status_name[int32(d.status)])
 	lines = append(lines, detailLabel.Render("Time: ")+formatDuration(d.minutes))
 

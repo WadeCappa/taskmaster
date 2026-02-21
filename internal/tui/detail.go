@@ -29,12 +29,13 @@ func detailFromWire(describeTaskResponse *taskspb.DescribeTaskResponse) taskDeta
 		minutes:  t.GetMinutesToComplete(),
 		tags:     t.GetTags(),
 	}
-	for _, a := range describeTaskResponse.GetAddendum() {
-		ts := a.GetTimeCreated().AsTime()
-		detail.addendums = append(detail.addendums, addendumEntry{
-			time:    ts,
+	addendums := make([]addendumEntry, len(describeTaskResponse.GetAddendum()))
+	for index, a := range describeTaskResponse.GetAddendum() {
+		addendums[index] = addendumEntry{
+			time:    a.GetTimeCreated().AsTime(),
 			content: a.GetContent(),
-		})
+		}
 	}
+	detail.addendums = addendums
 	return detail
 }
