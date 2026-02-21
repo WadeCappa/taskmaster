@@ -55,15 +55,47 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		m.detailErr = nil
 		m.detail = event.detail
 		return m, nil
+	case maybeAddendumCreatedEvent:
+		taskId, err := message.result.Unwrap()
+		if err != nil {
+			m.detailErr = err
+			return m, nil
+		}
+		m.mode = modeNormal
+		m.detailLoading = true
+		m.detailTaskId = taskId
+		return m, m.fetchDetailCmd(taskId)
+	case maybeStatusSetEvent:
+		taskId, err := message.result.Unwrap()
+		if err != nil {
+			m.detailErr = err
+			return m, nil
+		}
+		m.mode = modeNormal
+		m.detailLoading = true
+		m.detailTaskId = taskId
+		return m, tea.Batch(m.refetch(), m.fetchDetailCmd(taskId))
 	}
 	return m, nil
 }
 
 func (m Model) handleKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
-	if m.editingTags {
+	switch m.mode {
+	case modeNormal:
+		return m.handleNormalKey(message)
+	case modeDetailFocused:
+		return m.handleDetailFocusedKey(message)
+	case modeAddendumInput:
+		return m.handleAddendumInputKey(message)
+	case modeStatusSelect:
+		return m.handleStatusSelectKey(message)
+	case modeTagEdit:
 		return m.handleTagEditKey(message)
 	}
+	return m, nil
+}
 
+func (m Model) handleNormalKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch message.String() {
 	case "q", "ctrl+c":
 		return m, tea.Quit
@@ -96,10 +128,98 @@ func (m Model) handleKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.activeStatus = (m.activeStatus + 1) % len(taskspb.Status_value)
 		return m, m.refetch()
 	case "t":
-		m.editingTags = true
+		m.mode = modeTagEdit
 		m.savedTags = m.tags
 		m.tagInput = strings.Join(m.tags, ", ")
 		return m, nil
+	case "i":
+		m.mode = modeAddendumInput
+		m.addendumInput = ""
+		return m, nil
+	case "x":
+		if m.detail != nil {
+			m.statusCursor = int(m.detail.status)
+		}
+		m.mode = modeStatusSelect
+		return m, nil
+	case "tab":
+		m.mode = modeDetailFocused
+		m.detailOffset = 0
+		return m, nil
+	}
+	return m, nil
+}
+
+func (m Model) handleDetailFocusedKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch message.String() {
+	case "j", "down":
+		m.detailOffset++
+		return m, nil
+	case "k", "up":
+		if m.detailOffset > 0 {
+			m.detailOffset--
+		}
+		return m, nil
+	case "esc", "tab":
+		m.mode = modeNormal
+		return m, nil
+	case "q", "ctrl+c":
+		return m, tea.Quit
+	}
+	return m, nil
+}
+
+func (m Model) handleAddendumInputKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch message.String() {
+	case "enter":
+		content := strings.TrimSpace(m.addendumInput)
+		m.addendumInput = ""
+		if content != "" && len(m.tasks) > 0 {
+			taskId := m.tasks[m.taskCursor].id
+			return m, m.createAddendumCmd(taskId, content)
+		}
+		m.mode = modeNormal
+		return m, nil
+	case "esc":
+		m.mode = modeNormal
+		m.addendumInput = ""
+		return m, nil
+	case "backspace":
+		if len(m.addendumInput) > 0 {
+			m.addendumInput = m.addendumInput[:len(m.addendumInput)-1]
+		}
+		return m, nil
+	case "ctrl+c":
+		return m, tea.Quit
+	default:
+		if len(message.String()) == 1 {
+			m.addendumInput += message.String()
+		}
+		return m, nil
+	}
+}
+
+func (m Model) handleStatusSelectKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch message.String() {
+	case "j", "down":
+		m.statusCursor = (m.statusCursor + 1) % len(statuses)
+		return m, nil
+	case "k", "up":
+		m.statusCursor = (m.statusCursor - 1 + len(statuses)) % len(statuses)
+		return m, nil
+	case "enter":
+		if len(m.tasks) > 0 {
+			taskId := m.tasks[m.taskCursor].id
+			status := statuses[m.statusCursor]
+			return m, m.setStatusCmd(taskId, status)
+		}
+		m.mode = modeNormal
+		return m, nil
+	case "esc":
+		m.mode = modeNormal
+		return m, nil
+	case "ctrl+c":
+		return m, tea.Quit
 	}
 	return m, nil
 }
@@ -107,7 +227,7 @@ func (m Model) handleKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 func (m Model) handleTagEditKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch message.String() {
 	case "enter":
-		m.editingTags = false
+		m.mode = modeNormal
 		input := strings.TrimSpace(m.tagInput)
 		if input == "" {
 			m.tags = nil
@@ -123,7 +243,7 @@ func (m Model) handleTagEditKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, m.refetch()
 	case "esc":
-		m.editingTags = false
+		m.mode = modeNormal
 		m.tags = m.savedTags
 		return m, nil
 	case "backspace":
@@ -196,5 +316,31 @@ func (m Model) fetchDetailCmd(taskId uint64) tea.Cmd {
 				detail: &detail,
 			}),
 		}
+	}
+}
+
+func (m Model) createAddendumCmd(taskId uint64, content string) tea.Cmd {
+	return func() tea.Msg {
+		_, err := m.client.MarkTask(m.ctx, &taskspb.MarkTaskRequest{
+			TaskId:  taskId,
+			Content: content,
+		})
+		if err != nil {
+			return maybeAddendumCreatedEvent{types.Failure[uint64](fmt.Errorf("creating addendum: %w", err))}
+		}
+		return maybeAddendumCreatedEvent{types.Success(taskId)}
+	}
+}
+
+func (m Model) setStatusCmd(taskId uint64, status taskspb.Status) tea.Cmd {
+	return func() tea.Msg {
+		_, err := m.client.SetStatus(m.ctx, &taskspb.SetStatusRequest{
+			TaskId: taskId,
+			Status: status,
+		})
+		if err != nil {
+			return maybeStatusSetEvent{types.Failure[uint64](fmt.Errorf("setting status: %w", err))}
+		}
+		return maybeStatusSetEvent{types.Success(taskId)}
 	}
 }

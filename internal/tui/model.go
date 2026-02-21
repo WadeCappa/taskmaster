@@ -7,6 +7,16 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type uiMode int
+
+const (
+	modeNormal        uiMode = iota // j/k navigate tasks; h/l switch status
+	modeDetailFocused               // j/k scroll detail panel; Esc → normal
+	modeAddendumInput               // single-line addendum; enter: submit, esc: cancel
+	modeStatusSelect                // picking new status from menu; Enter confirm, Esc cancel
+	modeTagEdit                     // existing tag editing
+)
+
 type Model struct {
 	client taskspb.TasksClient
 	ctx    context.Context
@@ -14,9 +24,13 @@ type Model struct {
 	activeStatus int
 	tags         []string
 
-	editingTags bool
-	tagInput    string
-	savedTags   []string
+	mode          uiMode
+	tagInput      string
+	savedTags     []string
+	addendumInput string
+
+	statusCursor int
+	detailOffset     int
 
 	tasks          []taskEntry
 	taskCursor     int

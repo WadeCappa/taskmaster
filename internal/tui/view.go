@@ -33,7 +33,7 @@ func (m Model) viewTopBar() string {
 	statusSection := "Status: " + strings.Join(statusParts, " ")
 
 	var tagSection string
-	if m.editingTags {
+	if m.mode == modeTagEdit {
 		tagSection = "Tags: " + tagInputStyle.Render(m.tagInput+"_")
 	} else if len(m.tags) > 0 {
 		tagSection = "Tags: " + strings.Join(m.tags, ", ")
@@ -57,10 +57,29 @@ func (m Model) viewPanels() string {
 	panelHeight := m.listHeight()
 
 	left := m.viewTaskList(leftWidth, panelHeight)
-	right := m.viewDetail(rightWidth, panelHeight)
+
+	var right string
+	var rightBorder lipgloss.Style
+
+	switch m.mode {
+	case modeAddendumInput:
+		prompt := detailLabel.Render("Addendum: ") + tagInputStyle.Render(m.addendumInput+"_")
+		detail := m.viewDetail(rightWidth, panelHeight-1)
+		right = detail + "\n" + prompt
+		rightBorder = focusedBorderStyle
+	case modeDetailFocused:
+		right = m.viewDetail(rightWidth, panelHeight)
+		rightBorder = focusedBorderStyle
+	case modeStatusSelect:
+		right = m.viewStatusSelect(rightWidth, panelHeight)
+		rightBorder = focusedBorderStyle
+	default:
+		right = m.viewDetail(rightWidth, panelHeight)
+		rightBorder = borderStyle
+	}
 
 	leftPanel := borderStyle.Width(leftWidth).Height(panelHeight).Render(left)
-	rightPanel := borderStyle.Width(rightWidth).Height(panelHeight).Render(right)
+	rightPanel := rightBorder.Width(rightWidth).Height(panelHeight).Render(right)
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 }
@@ -129,43 +148,81 @@ func (m Model) viewDetail(width, height int) string {
 	}
 
 	d := m.detail
-	var lines []string
-	lines = append(lines, detailLabel.Render("Name: ")+d.name)
-	lines = append(lines, detailLabel.Render("Priority: ")+taskspb.Priority_name[int32(d.priority)])
-	lines = append(lines, detailLabel.Render("Status: ")+taskspb.Status_name[int32(d.status)])
-	lines = append(lines, detailLabel.Render("Time: ")+formatDuration(d.minutes))
+	var allLines []string
+	allLines = append(allLines, detailLabel.Render("Name: ")+d.name)
+	allLines = append(allLines, detailLabel.Render("Priority: ")+taskspb.Priority_name[int32(d.priority)])
+	allLines = append(allLines, detailLabel.Render("Status: ")+taskspb.Status_name[int32(d.status)])
+	allLines = append(allLines, detailLabel.Render("Time: ")+formatDuration(d.minutes))
 
 	if len(d.tags) > 0 {
-		lines = append(lines, detailLabel.Render("Tags: ")+strings.Join(d.tags, ", "))
+		allLines = append(allLines, detailLabel.Render("Tags: ")+strings.Join(d.tags, ", "))
 	} else {
-		lines = append(lines, detailLabel.Render("Tags: ")+dimStyle.Render("none"))
+		allLines = append(allLines, detailLabel.Render("Tags: ")+dimStyle.Render("none"))
 	}
 
-	lines = append(lines, "")
+	allLines = append(allLines, "")
 	if len(d.addendums) > 0 {
-		lines = append(lines, detailLabel.Render(fmt.Sprintf("Addendums (%d):", len(d.addendums))))
+		allLines = append(allLines, detailLabel.Render(fmt.Sprintf("Addendums (%d):", len(d.addendums))))
 		for _, a := range d.addendums {
 			dateStr := a.time.Format("2006-01-02")
-			content := a.content
-			maxContent := width - len(dateStr) - 6
-			if maxContent > 0 && len(content) > maxContent {
-				content = content[:maxContent-3] + "..."
+			prefix := "  " + dateStr + ": "
+			indent := strings.Repeat(" ", len(prefix))
+			contentWidth := width - len(prefix)
+			if contentWidth < 10 {
+				contentWidth = 10
 			}
-			lines = append(lines, "  "+dateStr+": "+content)
+			wrapped := wordWrapLines(a.content, contentWidth)
+			for i, line := range wrapped {
+				if i == 0 {
+					allLines = append(allLines, prefix+line)
+				} else {
+					allLines = append(allLines, indent+line)
+				}
+			}
 		}
 	} else {
-		lines = append(lines, dimStyle.Render("No addendums"))
+		allLines = append(allLines, dimStyle.Render("No addendums"))
 	}
 
+	visible := allLines
+	if m.detailOffset < len(allLines) {
+		visible = allLines[m.detailOffset:]
+	} else {
+		visible = nil
+	}
+	if len(visible) > height {
+		visible = visible[:height]
+	}
+	return strings.Join(visible, "\n")
+}
+
+func (m Model) viewStatusSelect(width, height int) string {
+	lines := []string{detailLabel.Render("Select Status:"), ""}
+	for i, s := range statuses {
+		prefix := "  "
+		name := taskspb.Status_name[int32(s)]
+		if i == m.statusCursor {
+			prefix = "> "
+			name = selectedStyle.Render(name)
+		}
+		lines = append(lines, prefix+name)
+	}
 	return strings.Join(lines, "\n")
 }
 
 func (m Model) viewHelpBar() string {
 	var help string
-	if m.editingTags {
+	switch m.mode {
+	case modeNormal:
+		help = "i: add addendum  x: set status  tab: focus detail  j/k: navigate  h/l: status  t: tags  q: quit"
+	case modeDetailFocused:
+		help = "j/k: scroll  tab/esc: back  q: quit"
+	case modeAddendumInput:
+		help = "enter: submit  esc: cancel  ctrl+c: quit"
+	case modeStatusSelect:
+		help = "j/k: move  enter: confirm  esc: cancel"
+	case modeTagEdit:
 		help = "enter: apply tags  esc: cancel  ctrl+c: quit"
-	} else {
-		help = "j/k: navigate  J/L: status  t: edit tags  q: quit"
 	}
 	return helpStyle.Padding(0, 1).Render(help)
 }
