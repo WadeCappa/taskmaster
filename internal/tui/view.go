@@ -63,10 +63,9 @@ func (m Model) viewPanels() string {
 
 	switch m.mode {
 	case modeAddendumInput:
-		ta := m.addendumTextarea
-		ta.SetWidth(rightWidth - 2)
-		ta.SetHeight(panelHeight - 3)
-		right = detailLabel.Render("New Addendum (ctrl+s to save):") + "\n" + ta.View()
+		prompt := detailLabel.Render("Addendum: ") + tagInputStyle.Render(m.addendumInput+"_")
+		detail := m.viewDetail(rightWidth, panelHeight-1)
+		right = detail + "\n" + prompt
 		rightBorder = focusedBorderStyle
 	case modeDetailFocused:
 		right = m.viewDetail(rightWidth, panelHeight)
@@ -219,7 +218,7 @@ func (m Model) viewHelpBar() string {
 	case modeDetailFocused:
 		help = "j/k: scroll  tab/esc: back  q: quit"
 	case modeAddendumInput:
-		help = "ctrl+s: submit  esc: cancel"
+		help = "enter: submit  esc: cancel  ctrl+c: quit"
 	case modeStatusSelect:
 		help = "j/k: move  enter: confirm  esc: cancel"
 	case modeTagEdit:

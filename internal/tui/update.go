@@ -134,8 +134,8 @@ func (m Model) handleNormalKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case "i":
 		m.mode = modeAddendumInput
-		m.addendumTextarea.Reset()
-		return m, m.addendumTextarea.Focus()
+		m.addendumInput = ""
+		return m, nil
 	case "x":
 		if m.detail != nil {
 			m.statusCursor = int(m.detail.status)
@@ -171,26 +171,31 @@ func (m Model) handleDetailFocusedKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m Model) handleAddendumInputKey(message tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch message.String() {
-	case "esc":
-		m.mode = modeNormal
-		m.addendumTextarea.Blur()
-		m.addendumTextarea.Reset()
-		return m, nil
-	case "ctrl+s":
-		content := m.addendumTextarea.Value()
+	case "enter":
+		content := strings.TrimSpace(m.addendumInput)
+		m.addendumInput = ""
 		if content != "" && len(m.tasks) > 0 {
 			taskId := m.tasks[m.taskCursor].id
-			m.addendumTextarea.Blur()
-			m.addendumTextarea.Reset()
 			return m, m.createAddendumCmd(taskId, content)
+		}
+		m.mode = modeNormal
+		return m, nil
+	case "esc":
+		m.mode = modeNormal
+		m.addendumInput = ""
+		return m, nil
+	case "backspace":
+		if len(m.addendumInput) > 0 {
+			m.addendumInput = m.addendumInput[:len(m.addendumInput)-1]
 		}
 		return m, nil
 	case "ctrl+c":
 		return m, tea.Quit
 	default:
-		var cmd tea.Cmd
-		m.addendumTextarea, cmd = m.addendumTextarea.Update(message)
-		return m, cmd
+		if len(message.String()) == 1 {
+			m.addendumInput += message.String()
+		}
+		return m, nil
 	}
 }
 
