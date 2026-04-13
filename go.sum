@@ -1,5 +1,7 @@
 github.com/WadeCappa/authmaster v0.0.2 h1:ByOpk6Vnr/jxSDke79UBQ6NxHF524PHxUH6W+/aAuuk=
 github.com/WadeCappa/authmaster v0.0.2/go.mod h1:+a/yQk4dy5+uL9Kg9aC3Pbd1JMbr0EFlbp1XEmLn2K4=
+github.com/alecthomas/kong v1.15.0 h1:BVJstKbpO73zKpmIu+m/aLRrNmWwxXPIGTNin9VmLVI=
+github.com/alecthomas/kong v1.15.0/go.mod h1:wrlbXem1CWqUV5Vbmss5ISYhsVPkBb1Yo7YKJghju2I=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

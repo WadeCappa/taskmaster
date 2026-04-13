@@ -31,10 +31,10 @@ func (t *TaskData) AddTask(
 	status model.Status,
 ) (newTaskId model.TaskId, err error) {
 	if err := store.Call(ctx, t.psqlUrl, func(c *pgx.Conn) error {
-		var dbParentId *model.TaskId
+		var dbParentId model.TaskId
 		val, exists := parentId.Unwrap()
 		if exists {
-			dbParentId = &val
+			dbParentId = val
 		}
 		if err := c.QueryRow(
 			ctx,
@@ -99,7 +99,7 @@ func (t *TaskData) LoadTask(
 	taskId model.TaskId,
 ) (task, error) {
 	result, err := store.CallAndReturn(ctx, t.psqlUrl, func(c *pgx.Conn) (task, error) {
-		var taskId model.TaskId
+		var scannedTaskId model.TaskId
 		var parentId model.TaskId
 		var title string
 		var description string
@@ -107,18 +107,18 @@ func (t *TaskData) LoadTask(
 		var createdTime time.Time
 		if err := c.QueryRow(
 			ctx,
-			`select task_id, parent_task_id, title, description, status, created_time 
-			from tasks 
+			`select task_id, parent_task_id, title, description, status, created_time
+			from tasks
 			where user_id = $1 and task_id = $2`,
 			userId, taskId,
-		).Scan(&taskId, &parentId, &title, &description, &status, &createdTime); err != nil {
+		).Scan(&scannedTaskId, &parentId, &title, &description, &status, &createdTime); err != nil {
 			return task{}, fmt.Errorf("scanning task: %w", err)
 		}
 		taskParentId := types.None[model.TaskId]()
 		if parentId != 0 {
 			taskParentId = types.Some(parentId)
 		}
-		return newTask(taskId, taskParentId, title, description, status, createdTime), nil
+		return newTask(scannedTaskId, taskParentId, title, description, status, createdTime), nil
 	})
 	if err != nil {
 		return task{}, fmt.Errorf("reading task: %w", err)
@@ -215,11 +215,13 @@ func (t *TaskData) TasksExist(
 ) (bool, error) {
 	exists, err := store.CallAndReturn(ctx, t.psqlUrl, func(c *pgx.Conn) (bool, error) {
 		var totalRows int
-		c.QueryRow(
+		if err := c.QueryRow(
 			ctx,
-			`select count(*) from tasks where user_id = &1 and task_id in &2`,
+			`select count(*) from tasks where user_id = $1 and task_id = ANY($2)`,
 			userId, tasks,
-		).Scan(&totalRows)
+		).Scan(&totalRows); err != nil {
+			return false, fmt.Errorf("checking task existence: %w", err)
+		}
 		return totalRows == len(tasks), nil
 	})
 	if err != nil {

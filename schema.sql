@@ -29,3 +29,6 @@ create table addendums (
 	created_time timestamptz not null default now()
 );
 create index addendum_by_task on addendums (task_id, created_time);
+
+-- The nil task
+insert into tasks (task_id, user_Id, parent_task_id, title, description, status, created_time) values (0,0,0,'','',0,now());
