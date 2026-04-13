@@ -22,128 +22,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Priority int32
-
-const (
-	Priority_DO_BEFORE_SLEEP Priority = 0
-	Priority_DO_IMMEDIATELY  Priority = 1
-	Priority_SHOULD_DO       Priority = 2
-	Priority_EVENTUALLY_DO   Priority = 3
-)
-
-// Enum value maps for Priority.
-var (
-	Priority_name = map[int32]string{
-		0: "DO_BEFORE_SLEEP",
-		1: "DO_IMMEDIATELY",
-		2: "SHOULD_DO",
-		3: "EVENTUALLY_DO",
-	}
-	Priority_value = map[string]int32{
-		"DO_BEFORE_SLEEP": 0,
-		"DO_IMMEDIATELY":  1,
-		"SHOULD_DO":       2,
-		"EVENTUALLY_DO":   3,
-	}
-)
-
-func (x Priority) Enum() *Priority {
-	p := new(Priority)
-	*p = x
-	return p
-}
-
-func (x Priority) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Priority) Descriptor() protoreflect.EnumDescriptor {
-	return file_tasks_v1_tasks_proto_enumTypes[0].Descriptor()
-}
-
-func (Priority) Type() protoreflect.EnumType {
-	return &file_tasks_v1_tasks_proto_enumTypes[0]
-}
-
-func (x Priority) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use Priority.Descriptor instead.
-func (Priority) EnumDescriptor() ([]byte, []int) {
-	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{0}
-}
-
-type Status int32
-
-const (
-	Status_TRACKING  Status = 0
-	Status_COMPLETED Status = 1
-	Status_BACKLOG   Status = 2
-)
-
-// Enum value maps for Status.
-var (
-	Status_name = map[int32]string{
-		0: "TRACKING",
-		1: "COMPLETED",
-		2: "BACKLOG",
-	}
-	Status_value = map[string]int32{
-		"TRACKING":  0,
-		"COMPLETED": 1,
-		"BACKLOG":   2,
-	}
-)
-
-func (x Status) Enum() *Status {
-	p := new(Status)
-	*p = x
-	return p
-}
-
-func (x Status) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Status) Descriptor() protoreflect.EnumDescriptor {
-	return file_tasks_v1_tasks_proto_enumTypes[1].Descriptor()
-}
-
-func (Status) Type() protoreflect.EnumType {
-	return &file_tasks_v1_tasks_proto_enumTypes[1]
-}
-
-func (x Status) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use Status.Descriptor instead.
-func (Status) EnumDescriptor() ([]byte, []int) {
-	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{1}
-}
-
-type PutTaskRequest struct {
+type CreateTaskRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Task          *Task                  `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PutTaskRequest) Reset() {
-	*x = PutTaskRequest{}
+func (x *CreateTaskRequest) Reset() {
+	*x = CreateTaskRequest{}
 	mi := &file_tasks_v1_tasks_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PutTaskRequest) String() string {
+func (x *CreateTaskRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PutTaskRequest) ProtoMessage() {}
+func (*CreateTaskRequest) ProtoMessage() {}
 
-func (x *PutTaskRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateTaskRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_tasks_v1_tasks_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -155,39 +54,39 @@ func (x *PutTaskRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PutTaskRequest.ProtoReflect.Descriptor instead.
-func (*PutTaskRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateTaskRequest.ProtoReflect.Descriptor instead.
+func (*CreateTaskRequest) Descriptor() ([]byte, []int) {
 	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *PutTaskRequest) GetTask() *Task {
+func (x *CreateTaskRequest) GetTask() *Task {
 	if x != nil {
 		return x.Task
 	}
 	return nil
 }
 
-type PutTaskResponse struct {
+type CreateTaskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TaskId        uint64                 `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PutTaskResponse) Reset() {
-	*x = PutTaskResponse{}
+func (x *CreateTaskResponse) Reset() {
+	*x = CreateTaskResponse{}
 	mi := &file_tasks_v1_tasks_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PutTaskResponse) String() string {
+func (x *CreateTaskResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PutTaskResponse) ProtoMessage() {}
+func (*CreateTaskResponse) ProtoMessage() {}
 
-func (x *PutTaskResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateTaskResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_tasks_v1_tasks_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -199,24 +98,21 @@ func (x *PutTaskResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PutTaskResponse.ProtoReflect.Descriptor instead.
-func (*PutTaskResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateTaskResponse.ProtoReflect.Descriptor instead.
+func (*CreateTaskResponse) Descriptor() ([]byte, []int) {
 	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *PutTaskResponse) GetTaskId() uint64 {
+func (x *CreateTaskResponse) GetTaskId() uint64 {
 	if x != nil {
 		return x.TaskId
 	}
 	return 0
 }
 
-// All fields are optional. For any given field, if nothing is provided then all tasks within
-// that category are returned
 type GetTasksRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        Status                 `protobuf:"varint,1,opt,name=status,proto3,enum=tasks.Status" json:"status,omitempty"`
-	Tags          []string               `protobuf:"bytes,2,rep,name=tags,proto3" json:"tags,omitempty"`
+	Status        Status                 `protobuf:"varint,1,opt,name=status,proto3,enum=tasks.v1.Status" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -255,20 +151,12 @@ func (x *GetTasksRequest) GetStatus() Status {
 	if x != nil {
 		return x.Status
 	}
-	return Status_TRACKING
-}
-
-func (x *GetTasksRequest) GetTags() []string {
-	if x != nil {
-		return x.Tags
-	}
-	return nil
+	return Status_OPEN
 }
 
 type GetTasksResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TaskId        uint64                 `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
-	Task          *Task                  `protobuf:"bytes,2,opt,name=task,proto3" json:"task,omitempty"`
+	Task          *Task                  `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -301,13 +189,6 @@ func (x *GetTasksResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetTasksResponse.ProtoReflect.Descriptor instead.
 func (*GetTasksResponse) Descriptor() ([]byte, []int) {
 	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *GetTasksResponse) GetTaskId() uint64 {
-	if x != nil {
-		return x.TaskId
-	}
-	return 0
 }
 
 func (x *GetTasksResponse) GetTask() *Task {
@@ -364,7 +245,8 @@ func (x *DescribeTaskRequest) GetTaskId() uint64 {
 type DescribeTaskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Task          *Task                  `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
-	Addendum      []*Addendum            `protobuf:"bytes,2,rep,name=addendum,proto3" json:"addendum,omitempty"`
+	BlockedBy     []uint64               `protobuf:"varint,2,rep,packed,name=blocked_by,json=blockedBy,proto3" json:"blocked_by,omitempty"`
+	Addendums     []*Addendum            `protobuf:"bytes,3,rep,name=addendums,proto3" json:"addendums,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -406,35 +288,42 @@ func (x *DescribeTaskResponse) GetTask() *Task {
 	return nil
 }
 
-func (x *DescribeTaskResponse) GetAddendum() []*Addendum {
+func (x *DescribeTaskResponse) GetBlockedBy() []uint64 {
 	if x != nil {
-		return x.Addendum
+		return x.BlockedBy
 	}
 	return nil
 }
 
-type MarkTaskRequest struct {
+func (x *DescribeTaskResponse) GetAddendums() []*Addendum {
+	if x != nil {
+		return x.Addendums
+	}
+	return nil
+}
+
+type SetTaskStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TaskId        uint64                 `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
-	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Status        Status                 `protobuf:"varint,2,opt,name=status,proto3,enum=tasks.v1.Status" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MarkTaskRequest) Reset() {
-	*x = MarkTaskRequest{}
+func (x *SetTaskStatusRequest) Reset() {
+	*x = SetTaskStatusRequest{}
 	mi := &file_tasks_v1_tasks_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MarkTaskRequest) String() string {
+func (x *SetTaskStatusRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MarkTaskRequest) ProtoMessage() {}
+func (*SetTaskStatusRequest) ProtoMessage() {}
 
-func (x *MarkTaskRequest) ProtoReflect() protoreflect.Message {
+func (x *SetTaskStatusRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_tasks_v1_tasks_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -446,45 +335,45 @@ func (x *MarkTaskRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MarkTaskRequest.ProtoReflect.Descriptor instead.
-func (*MarkTaskRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SetTaskStatusRequest.ProtoReflect.Descriptor instead.
+func (*SetTaskStatusRequest) Descriptor() ([]byte, []int) {
 	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *MarkTaskRequest) GetTaskId() uint64 {
+func (x *SetTaskStatusRequest) GetTaskId() uint64 {
 	if x != nil {
 		return x.TaskId
 	}
 	return 0
 }
 
-func (x *MarkTaskRequest) GetContent() string {
+func (x *SetTaskStatusRequest) GetStatus() Status {
 	if x != nil {
-		return x.Content
+		return x.Status
 	}
-	return ""
+	return Status_OPEN
 }
 
-type MarkTaskResponse struct {
+type SetTaskStatusResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MarkTaskResponse) Reset() {
-	*x = MarkTaskResponse{}
+func (x *SetTaskStatusResponse) Reset() {
+	*x = SetTaskStatusResponse{}
 	mi := &file_tasks_v1_tasks_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MarkTaskResponse) String() string {
+func (x *SetTaskStatusResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MarkTaskResponse) ProtoMessage() {}
+func (*SetTaskStatusResponse) ProtoMessage() {}
 
-func (x *MarkTaskResponse) ProtoReflect() protoreflect.Message {
+func (x *SetTaskStatusResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_tasks_v1_tasks_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -496,183 +385,27 @@ func (x *MarkTaskResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MarkTaskResponse.ProtoReflect.Descriptor instead.
-func (*MarkTaskResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SetTaskStatusResponse.ProtoReflect.Descriptor instead.
+func (*SetTaskStatusResponse) Descriptor() ([]byte, []int) {
 	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{7}
 }
 
-type GetTagsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetTagsRequest) Reset() {
-	*x = GetTagsRequest{}
-	mi := &file_tasks_v1_tasks_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetTagsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetTagsRequest) ProtoMessage() {}
-
-func (x *GetTagsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tasks_v1_tasks_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetTagsRequest.ProtoReflect.Descriptor instead.
-func (*GetTagsRequest) Descriptor() ([]byte, []int) {
-	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{8}
-}
-
-type GetTagsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TagId         uint64                 `protobuf:"varint,1,opt,name=tagId,proto3" json:"tagId,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	WriteTime     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=write_time,json=writeTime,proto3" json:"write_time,omitempty"`
-	Count         uint64                 `protobuf:"varint,4,opt,name=count,proto3" json:"count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetTagsResponse) Reset() {
-	*x = GetTagsResponse{}
-	mi := &file_tasks_v1_tasks_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetTagsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetTagsResponse) ProtoMessage() {}
-
-func (x *GetTagsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tasks_v1_tasks_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetTagsResponse.ProtoReflect.Descriptor instead.
-func (*GetTagsResponse) Descriptor() ([]byte, []int) {
-	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *GetTagsResponse) GetTagId() uint64 {
-	if x != nil {
-		return x.TagId
-	}
-	return 0
-}
-
-func (x *GetTagsResponse) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *GetTagsResponse) GetWriteTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.WriteTime
-	}
-	return nil
-}
-
-func (x *GetTagsResponse) GetCount() uint64 {
-	if x != nil {
-		return x.Count
-	}
-	return 0
-}
-
-type Addendum struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	TimeCreated   *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=time_created,json=timeCreated,proto3" json:"time_created,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Addendum) Reset() {
-	*x = Addendum{}
-	mi := &file_tasks_v1_tasks_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Addendum) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Addendum) ProtoMessage() {}
-
-func (x *Addendum) ProtoReflect() protoreflect.Message {
-	mi := &file_tasks_v1_tasks_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Addendum.ProtoReflect.Descriptor instead.
-func (*Addendum) Descriptor() ([]byte, []int) {
-	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *Addendum) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *Addendum) GetTimeCreated() *timestamppb.Timestamp {
-	if x != nil {
-		return x.TimeCreated
-	}
-	return nil
-}
-
 type Task struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Name              string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	MinutesToComplete uint64                 `protobuf:"varint,2,opt,name=minutes_to_complete,json=minutesToComplete,proto3" json:"minutes_to_complete,omitempty"`
-	Priority          Priority               `protobuf:"varint,3,opt,name=priority,proto3,enum=tasks.Priority" json:"priority,omitempty"`
-	Status            Status                 `protobuf:"varint,4,opt,name=status,proto3,enum=tasks.Status" json:"status,omitempty"`
-	NumberOfAddendums uint64                 `protobuf:"varint,5,opt,name=numberOfAddendums,proto3" json:"numberOfAddendums,omitempty"`
-	Tags              []string               `protobuf:"bytes,6,rep,name=tags,proto3" json:"tags,omitempty"`
-	Prerequisites     []uint64               `protobuf:"varint,7,rep,packed,name=prerequisites,proto3" json:"prerequisites,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	TaskId      uint64                 `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	Title       string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// Only set the parent_task_id if this is a sub-task of another task
+	ParentTaskId  uint64                 `protobuf:"varint,4,opt,name=parent_task_id,json=parentTaskId,proto3" json:"parent_task_id,omitempty"`
+	Status        Status                 `protobuf:"varint,5,opt,name=status,proto3,enum=tasks.v1.Status" json:"status,omitempty"`
+	CreatedTime   *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_time,json=createdTime,proto3" json:"created_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Task) Reset() {
 	*x = Task{}
-	mi := &file_tasks_v1_tasks_proto_msgTypes[11]
+	mi := &file_tasks_v1_tasks_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -684,7 +417,7 @@ func (x *Task) String() string {
 func (*Task) ProtoMessage() {}
 
 func (x *Task) ProtoReflect() protoreflect.Message {
-	mi := &file_tasks_v1_tasks_proto_msgTypes[11]
+	mi := &file_tasks_v1_tasks_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -697,208 +430,88 @@ func (x *Task) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task.ProtoReflect.Descriptor instead.
 func (*Task) Descriptor() ([]byte, []int) {
-	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{11}
+	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *Task) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *Task) GetMinutesToComplete() uint64 {
-	if x != nil {
-		return x.MinutesToComplete
-	}
-	return 0
-}
-
-func (x *Task) GetPriority() Priority {
-	if x != nil {
-		return x.Priority
-	}
-	return Priority_DO_BEFORE_SLEEP
-}
-
-func (x *Task) GetStatus() Status {
-	if x != nil {
-		return x.Status
-	}
-	return Status_TRACKING
-}
-
-func (x *Task) GetNumberOfAddendums() uint64 {
-	if x != nil {
-		return x.NumberOfAddendums
-	}
-	return 0
-}
-
-func (x *Task) GetTags() []string {
-	if x != nil {
-		return x.Tags
-	}
-	return nil
-}
-
-func (x *Task) GetPrerequisites() []uint64 {
-	if x != nil {
-		return x.Prerequisites
-	}
-	return nil
-}
-
-type SetStatusRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TaskId        uint64                 `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
-	Status        Status                 `protobuf:"varint,2,opt,name=status,proto3,enum=tasks.Status" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetStatusRequest) Reset() {
-	*x = SetStatusRequest{}
-	mi := &file_tasks_v1_tasks_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetStatusRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetStatusRequest) ProtoMessage() {}
-
-func (x *SetStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tasks_v1_tasks_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetStatusRequest.ProtoReflect.Descriptor instead.
-func (*SetStatusRequest) Descriptor() ([]byte, []int) {
-	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *SetStatusRequest) GetTaskId() uint64 {
+func (x *Task) GetTaskId() uint64 {
 	if x != nil {
 		return x.TaskId
 	}
 	return 0
 }
 
-func (x *SetStatusRequest) GetStatus() Status {
+func (x *Task) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Task) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Task) GetParentTaskId() uint64 {
+	if x != nil {
+		return x.ParentTaskId
+	}
+	return 0
+}
+
+func (x *Task) GetStatus() Status {
 	if x != nil {
 		return x.Status
 	}
-	return Status_TRACKING
+	return Status_OPEN
 }
 
-type SetStatusResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetStatusResponse) Reset() {
-	*x = SetStatusResponse{}
-	mi := &file_tasks_v1_tasks_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetStatusResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetStatusResponse) ProtoMessage() {}
-
-func (x *SetStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tasks_v1_tasks_proto_msgTypes[13]
+func (x *Task) GetCreatedTime() *timestamppb.Timestamp {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
+		return x.CreatedTime
 	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetStatusResponse.ProtoReflect.Descriptor instead.
-func (*SetStatusResponse) Descriptor() ([]byte, []int) {
-	return file_tasks_v1_tasks_proto_rawDescGZIP(), []int{13}
+	return nil
 }
 
 var File_tasks_v1_tasks_proto protoreflect.FileDescriptor
 
 const file_tasks_v1_tasks_proto_rawDesc = "" +
 	"\n" +
-	"\x14tasks/v1/tasks.proto\x12\x05tasks\x1a\x1fgoogle/protobuf/timestamp.proto\"1\n" +
-	"\x0ePutTaskRequest\x12\x1f\n" +
-	"\x04task\x18\x01 \x01(\v2\v.tasks.TaskR\x04task\"*\n" +
-	"\x0fPutTaskResponse\x12\x17\n" +
-	"\atask_id\x18\x01 \x01(\x04R\x06taskId\"L\n" +
-	"\x0fGetTasksRequest\x12%\n" +
-	"\x06status\x18\x01 \x01(\x0e2\r.tasks.StatusR\x06status\x12\x12\n" +
-	"\x04tags\x18\x02 \x03(\tR\x04tags\"L\n" +
-	"\x10GetTasksResponse\x12\x17\n" +
-	"\atask_id\x18\x01 \x01(\x04R\x06taskId\x12\x1f\n" +
-	"\x04task\x18\x02 \x01(\v2\v.tasks.TaskR\x04task\".\n" +
+	"\x14tasks/v1/tasks.proto\x12\btasks.v1\x1a\x15tasks/v1/status.proto\x1a\x18tasks/v1/addendums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"7\n" +
+	"\x11CreateTaskRequest\x12\"\n" +
+	"\x04task\x18\x01 \x01(\v2\x0e.tasks.v1.TaskR\x04task\"-\n" +
+	"\x12CreateTaskResponse\x12\x17\n" +
+	"\atask_id\x18\x01 \x01(\x04R\x06taskId\";\n" +
+	"\x0fGetTasksRequest\x12(\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x10.tasks.v1.StatusR\x06status\"6\n" +
+	"\x10GetTasksResponse\x12\"\n" +
+	"\x04task\x18\x01 \x01(\v2\x0e.tasks.v1.TaskR\x04task\".\n" +
 	"\x13DescribeTaskRequest\x12\x17\n" +
-	"\atask_id\x18\x01 \x01(\x04R\x06taskId\"d\n" +
-	"\x14DescribeTaskResponse\x12\x1f\n" +
-	"\x04task\x18\x01 \x01(\v2\v.tasks.TaskR\x04task\x12+\n" +
-	"\baddendum\x18\x02 \x03(\v2\x0f.tasks.AddendumR\baddendum\"D\n" +
-	"\x0fMarkTaskRequest\x12\x17\n" +
-	"\atask_id\x18\x01 \x01(\x04R\x06taskId\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"\x12\n" +
-	"\x10MarkTaskResponse\"\x10\n" +
-	"\x0eGetTagsRequest\"\x8c\x01\n" +
-	"\x0fGetTagsResponse\x12\x14\n" +
-	"\x05tagId\x18\x01 \x01(\x04R\x05tagId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x129\n" +
+	"\atask_id\x18\x01 \x01(\x04R\x06taskId\"\x8b\x01\n" +
+	"\x14DescribeTaskResponse\x12\"\n" +
+	"\x04task\x18\x01 \x01(\v2\x0e.tasks.v1.TaskR\x04task\x12\x1d\n" +
 	"\n" +
-	"write_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\twriteTime\x12\x14\n" +
-	"\x05count\x18\x04 \x01(\x04R\x05count\"c\n" +
-	"\bAddendum\x12\x18\n" +
-	"\acontent\x18\x01 \x01(\tR\acontent\x12=\n" +
-	"\ftime_created\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vtimeCreated\"\x86\x02\n" +
-	"\x04Task\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12.\n" +
-	"\x13minutes_to_complete\x18\x02 \x01(\x04R\x11minutesToComplete\x12+\n" +
-	"\bpriority\x18\x03 \x01(\x0e2\x0f.tasks.PriorityR\bpriority\x12%\n" +
-	"\x06status\x18\x04 \x01(\x0e2\r.tasks.StatusR\x06status\x12,\n" +
-	"\x11numberOfAddendums\x18\x05 \x01(\x04R\x11numberOfAddendums\x12\x12\n" +
-	"\x04tags\x18\x06 \x03(\tR\x04tags\x12$\n" +
-	"\rprerequisites\x18\a \x03(\x04R\rprerequisites\"R\n" +
-	"\x10SetStatusRequest\x12\x17\n" +
-	"\atask_id\x18\x01 \x01(\x04R\x06taskId\x12%\n" +
-	"\x06status\x18\x02 \x01(\x0e2\r.tasks.StatusR\x06status\"\x13\n" +
-	"\x11SetStatusResponse*U\n" +
-	"\bPriority\x12\x13\n" +
-	"\x0fDO_BEFORE_SLEEP\x10\x00\x12\x12\n" +
-	"\x0eDO_IMMEDIATELY\x10\x01\x12\r\n" +
-	"\tSHOULD_DO\x10\x02\x12\x11\n" +
-	"\rEVENTUALLY_DO\x10\x03*2\n" +
-	"\x06Status\x12\f\n" +
-	"\bTRACKING\x10\x00\x12\r\n" +
-	"\tCOMPLETED\x10\x01\x12\v\n" +
-	"\aBACKLOG\x10\x022\x8e\x03\n" +
-	"\x05tasks\x12:\n" +
-	"\aPutTask\x12\x15.tasks.PutTaskRequest\x1a\x16.tasks.PutTaskResponse\"\x00\x12?\n" +
-	"\bGetTasks\x12\x16.tasks.GetTasksRequest\x1a\x17.tasks.GetTasksResponse\"\x000\x01\x12I\n" +
-	"\fDescribeTask\x12\x1a.tasks.DescribeTaskRequest\x1a\x1b.tasks.DescribeTaskResponse\"\x00\x12=\n" +
-	"\bMarkTask\x12\x16.tasks.MarkTaskRequest\x1a\x17.tasks.MarkTaskResponse\"\x00\x12<\n" +
-	"\aGetTags\x12\x15.tasks.GetTagsRequest\x1a\x16.tasks.GetTagsResponse\"\x000\x01\x12@\n" +
-	"\tSetStatus\x12\x17.tasks.SetStatusRequest\x1a\x18.tasks.SetStatusResponse\"\x00B9Z7github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspbb\x06proto3"
+	"blocked_by\x18\x02 \x03(\x04R\tblockedBy\x120\n" +
+	"\taddendums\x18\x03 \x03(\v2\x12.tasks.v1.AddendumR\taddendums\"Y\n" +
+	"\x14SetTaskStatusRequest\x12\x17\n" +
+	"\atask_id\x18\x01 \x01(\x04R\x06taskId\x12(\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x10.tasks.v1.StatusR\x06status\"\x17\n" +
+	"\x15SetTaskStatusResponse\"\xe6\x01\n" +
+	"\x04Task\x12\x17\n" +
+	"\atask_id\x18\x01 \x01(\x04R\x06taskId\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12$\n" +
+	"\x0eparent_task_id\x18\x04 \x01(\x04R\fparentTaskId\x12(\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x10.tasks.v1.StatusR\x06status\x12=\n" +
+	"\fcreated_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\vcreatedTime2\xb6\x02\n" +
+	"\x05Tasks\x12G\n" +
+	"\n" +
+	"CreateTask\x12\x1b.tasks.v1.CreateTaskRequest\x1a\x1c.tasks.v1.CreateTaskResponse\x12C\n" +
+	"\bGetTasks\x12\x19.tasks.v1.GetTasksRequest\x1a\x1a.tasks.v1.GetTasksResponse0\x01\x12M\n" +
+	"\fDescribeTask\x12\x1d.tasks.v1.DescribeTaskRequest\x1a\x1e.tasks.v1.DescribeTaskResponse\x12P\n" +
+	"\rSetTaskStatus\x12\x1e.tasks.v1.SetTaskStatusRequest\x1a\x1f.tasks.v1.SetTaskStatusResponseB9Z7github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspbb\x06proto3"
 
 var (
 	file_tasks_v1_tasks_proto_rawDescOnce sync.Once
@@ -912,55 +525,43 @@ func file_tasks_v1_tasks_proto_rawDescGZIP() []byte {
 	return file_tasks_v1_tasks_proto_rawDescData
 }
 
-var file_tasks_v1_tasks_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_tasks_v1_tasks_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_tasks_v1_tasks_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_tasks_v1_tasks_proto_goTypes = []any{
-	(Priority)(0),                 // 0: tasks.Priority
-	(Status)(0),                   // 1: tasks.Status
-	(*PutTaskRequest)(nil),        // 2: tasks.PutTaskRequest
-	(*PutTaskResponse)(nil),       // 3: tasks.PutTaskResponse
-	(*GetTasksRequest)(nil),       // 4: tasks.GetTasksRequest
-	(*GetTasksResponse)(nil),      // 5: tasks.GetTasksResponse
-	(*DescribeTaskRequest)(nil),   // 6: tasks.DescribeTaskRequest
-	(*DescribeTaskResponse)(nil),  // 7: tasks.DescribeTaskResponse
-	(*MarkTaskRequest)(nil),       // 8: tasks.MarkTaskRequest
-	(*MarkTaskResponse)(nil),      // 9: tasks.MarkTaskResponse
-	(*GetTagsRequest)(nil),        // 10: tasks.GetTagsRequest
-	(*GetTagsResponse)(nil),       // 11: tasks.GetTagsResponse
-	(*Addendum)(nil),              // 12: tasks.Addendum
-	(*Task)(nil),                  // 13: tasks.Task
-	(*SetStatusRequest)(nil),      // 14: tasks.SetStatusRequest
-	(*SetStatusResponse)(nil),     // 15: tasks.SetStatusResponse
-	(*timestamppb.Timestamp)(nil), // 16: google.protobuf.Timestamp
+	(*CreateTaskRequest)(nil),     // 0: tasks.v1.CreateTaskRequest
+	(*CreateTaskResponse)(nil),    // 1: tasks.v1.CreateTaskResponse
+	(*GetTasksRequest)(nil),       // 2: tasks.v1.GetTasksRequest
+	(*GetTasksResponse)(nil),      // 3: tasks.v1.GetTasksResponse
+	(*DescribeTaskRequest)(nil),   // 4: tasks.v1.DescribeTaskRequest
+	(*DescribeTaskResponse)(nil),  // 5: tasks.v1.DescribeTaskResponse
+	(*SetTaskStatusRequest)(nil),  // 6: tasks.v1.SetTaskStatusRequest
+	(*SetTaskStatusResponse)(nil), // 7: tasks.v1.SetTaskStatusResponse
+	(*Task)(nil),                  // 8: tasks.v1.Task
+	(Status)(0),                   // 9: tasks.v1.Status
+	(*Addendum)(nil),              // 10: tasks.v1.Addendum
+	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
 }
 var file_tasks_v1_tasks_proto_depIdxs = []int32{
-	13, // 0: tasks.PutTaskRequest.task:type_name -> tasks.Task
-	1,  // 1: tasks.GetTasksRequest.status:type_name -> tasks.Status
-	13, // 2: tasks.GetTasksResponse.task:type_name -> tasks.Task
-	13, // 3: tasks.DescribeTaskResponse.task:type_name -> tasks.Task
-	12, // 4: tasks.DescribeTaskResponse.addendum:type_name -> tasks.Addendum
-	16, // 5: tasks.GetTagsResponse.write_time:type_name -> google.protobuf.Timestamp
-	16, // 6: tasks.Addendum.time_created:type_name -> google.protobuf.Timestamp
-	0,  // 7: tasks.Task.priority:type_name -> tasks.Priority
-	1,  // 8: tasks.Task.status:type_name -> tasks.Status
-	1,  // 9: tasks.SetStatusRequest.status:type_name -> tasks.Status
-	2,  // 10: tasks.tasks.PutTask:input_type -> tasks.PutTaskRequest
-	4,  // 11: tasks.tasks.GetTasks:input_type -> tasks.GetTasksRequest
-	6,  // 12: tasks.tasks.DescribeTask:input_type -> tasks.DescribeTaskRequest
-	8,  // 13: tasks.tasks.MarkTask:input_type -> tasks.MarkTaskRequest
-	10, // 14: tasks.tasks.GetTags:input_type -> tasks.GetTagsRequest
-	14, // 15: tasks.tasks.SetStatus:input_type -> tasks.SetStatusRequest
-	3,  // 16: tasks.tasks.PutTask:output_type -> tasks.PutTaskResponse
-	5,  // 17: tasks.tasks.GetTasks:output_type -> tasks.GetTasksResponse
-	7,  // 18: tasks.tasks.DescribeTask:output_type -> tasks.DescribeTaskResponse
-	9,  // 19: tasks.tasks.MarkTask:output_type -> tasks.MarkTaskResponse
-	11, // 20: tasks.tasks.GetTags:output_type -> tasks.GetTagsResponse
-	15, // 21: tasks.tasks.SetStatus:output_type -> tasks.SetStatusResponse
-	16, // [16:22] is the sub-list for method output_type
-	10, // [10:16] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	8,  // 0: tasks.v1.CreateTaskRequest.task:type_name -> tasks.v1.Task
+	9,  // 1: tasks.v1.GetTasksRequest.status:type_name -> tasks.v1.Status
+	8,  // 2: tasks.v1.GetTasksResponse.task:type_name -> tasks.v1.Task
+	8,  // 3: tasks.v1.DescribeTaskResponse.task:type_name -> tasks.v1.Task
+	10, // 4: tasks.v1.DescribeTaskResponse.addendums:type_name -> tasks.v1.Addendum
+	9,  // 5: tasks.v1.SetTaskStatusRequest.status:type_name -> tasks.v1.Status
+	9,  // 6: tasks.v1.Task.status:type_name -> tasks.v1.Status
+	11, // 7: tasks.v1.Task.created_time:type_name -> google.protobuf.Timestamp
+	0,  // 8: tasks.v1.Tasks.CreateTask:input_type -> tasks.v1.CreateTaskRequest
+	2,  // 9: tasks.v1.Tasks.GetTasks:input_type -> tasks.v1.GetTasksRequest
+	4,  // 10: tasks.v1.Tasks.DescribeTask:input_type -> tasks.v1.DescribeTaskRequest
+	6,  // 11: tasks.v1.Tasks.SetTaskStatus:input_type -> tasks.v1.SetTaskStatusRequest
+	1,  // 12: tasks.v1.Tasks.CreateTask:output_type -> tasks.v1.CreateTaskResponse
+	3,  // 13: tasks.v1.Tasks.GetTasks:output_type -> tasks.v1.GetTasksResponse
+	5,  // 14: tasks.v1.Tasks.DescribeTask:output_type -> tasks.v1.DescribeTaskResponse
+	7,  // 15: tasks.v1.Tasks.SetTaskStatus:output_type -> tasks.v1.SetTaskStatusResponse
+	12, // [12:16] is the sub-list for method output_type
+	8,  // [8:12] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_tasks_v1_tasks_proto_init() }
@@ -968,19 +569,20 @@ func file_tasks_v1_tasks_proto_init() {
 	if File_tasks_v1_tasks_proto != nil {
 		return
 	}
+	file_tasks_v1_status_proto_init()
+	file_tasks_v1_addendums_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tasks_v1_tasks_proto_rawDesc), len(file_tasks_v1_tasks_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   14,
+			NumEnums:      0,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_tasks_v1_tasks_proto_goTypes,
 		DependencyIndexes: file_tasks_v1_tasks_proto_depIdxs,
-		EnumInfos:         file_tasks_v1_tasks_proto_enumTypes,
 		MessageInfos:      file_tasks_v1_tasks_proto_msgTypes,
 	}.Build()
 	File_tasks_v1_tasks_proto = out.File

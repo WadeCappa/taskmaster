@@ -8,9 +8,10 @@ import (
 	"net"
 
 	"github.com/WadeCappa/authmaster/pkg/go/authmaster/v1"
+	"github.com/WadeCappa/taskmaster/internal/addendums"
 	"github.com/WadeCappa/taskmaster/internal/auth"
-	"github.com/WadeCappa/taskmaster/internal/database"
-	"github.com/WadeCappa/taskmaster/internal/server"
+	"github.com/WadeCappa/taskmaster/internal/blockers"
+	"github.com/WadeCappa/taskmaster/internal/tasks"
 	"github.com/WadeCappa/taskmaster/pkg/go/tasks/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -32,12 +33,21 @@ func main() {
 	}
 	s := grpc.NewServer()
 
-	db := database.NewDatabase(*psqlHostname)
-
 	if err := withConnection(*authHostname, *authConnectionSecure, func(ac authmaster.AuthmasterClient) error {
+		addendumData := addendums.NewAddendumData(*psqlHostname)
+		blockerData := blockers.NewBlockerData(*psqlHostname)
+		tasksData := tasks.NewTaskData(*psqlHostname)
+
 		auth := auth.NewAuth(ac)
-		server_inst := server.NewServer(db, auth)
-		taskspb.RegisterTasksServer(s, server_inst)
+
+		tasksServer := tasks.NewServer(tasksData, auth)
+		taskspb.RegisterTasksServer(s, tasksServer)
+
+		blockersServer := blockers.NewServer(blockerData, tasksData, auth)
+		taskspb.RegisterBlockersServer(s, blockersServer)
+
+		addendumsServer := addendums.NewServer(addendumData, tasksData, auth)
+		taskspb.RegisterAddendumsServer(s, addendumsServer)
 
 		log.Printf("server listening at %v", lis.Addr())
 		if err := s.Serve(lis); err != nil {

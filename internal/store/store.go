@@ -28,17 +28,18 @@ func Call(
 func CallAndReturn[T any](
 	ctx context.Context,
 	postgresUrl string,
-	query func(*pgx.Conn) (*T, error),
-) (*T, error) {
+	query func(*pgx.Conn) (T, error),
+) (T, error) {
 	// this is probably insecure. Will want to change how we access this in the future
 	conn, err := pgx.Connect(ctx, postgresUrl)
+	var nilVal T
 	if err != nil {
-		return nil, fmt.Errorf("connecting to postgres: %w", err)
+		return nilVal, fmt.Errorf("connecting to postgres: %w", err)
 	}
 	defer conn.Close(ctx)
 	res, err := query(conn)
 	if err != nil {
-		return nil, fmt.Errorf("querying postgres: %w", err)
+		return nilVal, fmt.Errorf("querying postgres: %w", err)
 	}
 	return res, nil
 }

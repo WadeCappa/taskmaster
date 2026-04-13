@@ -1,0 +1,22 @@
+syntax = "proto3";
+package tasks.v1;
+
+option go_package = "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspb";
+
+import "google/protobuf/timestamp.proto";
+
+service Addendums {
+  rpc AddAddendum(AddAddendumRequest) returns (AddAddendumResponse);
+}
+
+message AddAddendumRequest {
+  uint64 task_id = 1;
+  string content = 2;
+}
+
+message AddAddendumResponse {}
+
+message Addendum {
+  string content = 2;
+  google.protobuf.Timestamp created_time = 3;
+}

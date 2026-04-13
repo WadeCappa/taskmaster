@@ -1,0 +1,10 @@
+syntax = "proto3";
+package tasks.v1;
+
+option go_package = "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspb";
+
+enum Status {
+  OPEN = 0;
+  IN_PROGRESS = 1;
+  CLOSED = 2;
+}
