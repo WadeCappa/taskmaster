@@ -112,7 +112,7 @@ func put() error {
 	if err != nil {
 		return fmt.Errorf("failed to read name: %w", err)
 	}
-	newTask.Name = strings.Trim(input, "\n")
+	newTask.Title = strings.Trim(input, "\n")
 	// MinutesToComplete        uint64
 	minutes, err := readUint64(reader, "minutes to complete")
 	if err != nil {

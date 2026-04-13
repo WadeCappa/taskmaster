@@ -1,0 +1,31 @@
+syntax = "proto3";
+package tasks.v1;
+
+option go_package = "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspb";
+
+service Blockers {
+  rpc AddBlocker(AddBlockerRequest) returns (AddBlockerResponse);
+  rpc RemoveBlocker(RemoveBlockerRequest) returns (RemoveBlockerResponse);
+  rpc GetBlockers(GetBlockersRequest) returns (GetBlockersResponse);
+}
+
+message AddBlockerRequest {
+  uint64 task_id = 1;
+  uint64 blocked_by = 2; 
+}
+
+message AddBlockerResponse {}
+
+message RemoveBlockerRequest {
+  uint64 task_id = 1;
+  uint64 blocked_by = 2;
+}
+message RemoveBlockerResponse {}
+
+message GetBlockersRequest  { 
+  uint64 task_id = 1; 
+}
+
+message GetBlockersResponse {
+  repeated uint64 blocked_by_task_ids = 1; 
+}

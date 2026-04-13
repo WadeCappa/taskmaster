@@ -1,95 +1,59 @@
 syntax = "proto3";
-option go_package = "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspb";
+package tasks.v1;
+
+import "tasks/v1/status.proto";
+import "tasks/v1/addendums.proto";
 
 import "google/protobuf/timestamp.proto";
 
-package tasks;
+option go_package = "github.com/WadeCappa/taskmaster/pkg/go/tasks/v1;taskspb";
 
-service tasks {
-  rpc PutTask (PutTaskRequest) returns (PutTaskResponse) {}
-  rpc GetTasks (GetTasksRequest) returns (stream GetTasksResponse) {}
-  rpc DescribeTask (DescribeTaskRequest) returns (DescribeTaskResponse) {}
-  rpc MarkTask (MarkTaskRequest) returns (MarkTaskResponse) {}
-  rpc GetTags (GetTagsRequest) returns (stream GetTagsResponse) {}
-  rpc SetStatus (SetStatusRequest) returns (SetStatusResponse) {}
+service Tasks {
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
+  rpc GetTasks(GetTasksRequest) returns (stream GetTasksResponse);
+  rpc DescribeTask(DescribeTaskRequest) returns (DescribeTaskResponse);
+  rpc SetTaskStatus(SetTaskStatusRequest) returns (SetTaskStatusResponse);
 }
 
-message PutTaskRequest {
-  Task task = 1;
+message CreateTaskRequest  {
+  Task task = 1; 
 }
 
-message PutTaskResponse {
-  uint64 task_id = 1;
+message CreateTaskResponse {
+  uint64 task_id = 1; 
 }
 
-// All fields are optional. For any given field, if nothing is provided then all tasks within 
-// that category are returned
 message GetTasksRequest {
   Status status = 1;
-  repeated string tags = 2;
 }
 
 message GetTasksResponse {
-  uint64 task_id = 1;
-  Task task = 2;
+  Task task = 1;
 }
 
-message DescribeTaskRequest {
-  uint64 task_id = 1;
+message DescribeTaskRequest  {
+  uint64 task_id = 1; 
 }
 
 message DescribeTaskResponse {
   Task task = 1;
-  repeated Addendum addendum = 2;
+  repeated uint64 blocked_by = 2;
+  repeated Addendum addendums = 3;
 }
 
-message MarkTaskRequest {
-  uint64 task_id = 1;
-  string content = 2;
-}
-
-message MarkTaskResponse {}
-
-message GetTagsRequest {}
-
-message GetTagsResponse {
-  uint64 tagId = 1;
-  string name = 2;
-  google.protobuf.Timestamp write_time = 3;
-  uint64 count = 4;
-}
-
-enum Priority {
-  DO_BEFORE_SLEEP = 0;
-  DO_IMMEDIATELY = 1;
-  SHOULD_DO = 2;
-  EVENTUALLY_DO = 3;
-}
-
-enum Status {
-  TRACKING = 0;
-  COMPLETED = 1;
-  BACKLOG = 2;
-}
-
-message Addendum {
-  string content = 1;
-  google.protobuf.Timestamp time_created = 2;
-}
-
-message Task {
-  string name = 1;
-  uint64 minutes_to_complete = 2;
-  Priority priority = 3;
-  Status status = 4;
-  uint64 numberOfAddendums = 5;
-  repeated string tags = 6;
-  repeated uint64 prerequisites = 7;
-}
-
-message SetStatusRequest {
+message SetTaskStatusRequest {
   uint64 task_id = 1;
   Status status = 2;
 }
 
-message SetStatusResponse {}
+message SetTaskStatusResponse {}
+
+message Task {
+  uint64 task_id = 1;
+  string title = 2;
+  string description = 3;
+  // Only set the parent_task_id if this is a sub-task of another task
+  uint64 parent_task_id = 4;
+  Status status = 5;
+  google.protobuf.Timestamp created_time = 6;
+}

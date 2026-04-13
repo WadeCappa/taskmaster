@@ -19,24 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Tasks_PutTask_FullMethodName      = "/tasks.tasks/PutTask"
-	Tasks_GetTasks_FullMethodName     = "/tasks.tasks/GetTasks"
-	Tasks_DescribeTask_FullMethodName = "/tasks.tasks/DescribeTask"
-	Tasks_MarkTask_FullMethodName     = "/tasks.tasks/MarkTask"
-	Tasks_GetTags_FullMethodName      = "/tasks.tasks/GetTags"
-	Tasks_SetStatus_FullMethodName    = "/tasks.tasks/SetStatus"
+	Tasks_CreateTask_FullMethodName    = "/tasks.v1.Tasks/CreateTask"
+	Tasks_GetTasks_FullMethodName      = "/tasks.v1.Tasks/GetTasks"
+	Tasks_DescribeTask_FullMethodName  = "/tasks.v1.Tasks/DescribeTask"
+	Tasks_SetTaskStatus_FullMethodName = "/tasks.v1.Tasks/SetTaskStatus"
 )
 
 // TasksClient is the client API for Tasks service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TasksClient interface {
-	PutTask(ctx context.Context, in *PutTaskRequest, opts ...grpc.CallOption) (*PutTaskResponse, error)
+	CreateTask(ctx context.Context, in *CreateTaskRequest, opts ...grpc.CallOption) (*CreateTaskResponse, error)
 	GetTasks(ctx context.Context, in *GetTasksRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTasksResponse], error)
 	DescribeTask(ctx context.Context, in *DescribeTaskRequest, opts ...grpc.CallOption) (*DescribeTaskResponse, error)
-	MarkTask(ctx context.Context, in *MarkTaskRequest, opts ...grpc.CallOption) (*MarkTaskResponse, error)
-	GetTags(ctx context.Context, in *GetTagsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTagsResponse], error)
-	SetStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error)
+	SetTaskStatus(ctx context.Context, in *SetTaskStatusRequest, opts ...grpc.CallOption) (*SetTaskStatusResponse, error)
 }
 
 type tasksClient struct {
@@ -47,10 +43,10 @@ func NewTasksClient(cc grpc.ClientConnInterface) TasksClient {
 	return &tasksClient{cc}
 }
 
-func (c *tasksClient) PutTask(ctx context.Context, in *PutTaskRequest, opts ...grpc.CallOption) (*PutTaskResponse, error) {
+func (c *tasksClient) CreateTask(ctx context.Context, in *CreateTaskRequest, opts ...grpc.CallOption) (*CreateTaskResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PutTaskResponse)
-	err := c.cc.Invoke(ctx, Tasks_PutTask_FullMethodName, in, out, cOpts...)
+	out := new(CreateTaskResponse)
+	err := c.cc.Invoke(ctx, Tasks_CreateTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,39 +82,10 @@ func (c *tasksClient) DescribeTask(ctx context.Context, in *DescribeTaskRequest,
 	return out, nil
 }
 
-func (c *tasksClient) MarkTask(ctx context.Context, in *MarkTaskRequest, opts ...grpc.CallOption) (*MarkTaskResponse, error) {
+func (c *tasksClient) SetTaskStatus(ctx context.Context, in *SetTaskStatusRequest, opts ...grpc.CallOption) (*SetTaskStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MarkTaskResponse)
-	err := c.cc.Invoke(ctx, Tasks_MarkTask_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *tasksClient) GetTags(ctx context.Context, in *GetTagsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetTagsResponse], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Tasks_ServiceDesc.Streams[1], Tasks_GetTags_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[GetTagsRequest, GetTagsResponse]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Tasks_GetTagsClient = grpc.ServerStreamingClient[GetTagsResponse]
-
-func (c *tasksClient) SetStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetStatusResponse)
-	err := c.cc.Invoke(ctx, Tasks_SetStatus_FullMethodName, in, out, cOpts...)
+	out := new(SetTaskStatusResponse)
+	err := c.cc.Invoke(ctx, Tasks_SetTaskStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -129,12 +96,10 @@ func (c *tasksClient) SetStatus(ctx context.Context, in *SetStatusRequest, opts 
 // All implementations must embed UnimplementedTasksServer
 // for forward compatibility.
 type TasksServer interface {
-	PutTask(context.Context, *PutTaskRequest) (*PutTaskResponse, error)
+	CreateTask(context.Context, *CreateTaskRequest) (*CreateTaskResponse, error)
 	GetTasks(*GetTasksRequest, grpc.ServerStreamingServer[GetTasksResponse]) error
 	DescribeTask(context.Context, *DescribeTaskRequest) (*DescribeTaskResponse, error)
-	MarkTask(context.Context, *MarkTaskRequest) (*MarkTaskResponse, error)
-	GetTags(*GetTagsRequest, grpc.ServerStreamingServer[GetTagsResponse]) error
-	SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error)
+	SetTaskStatus(context.Context, *SetTaskStatusRequest) (*SetTaskStatusResponse, error)
 	mustEmbedUnimplementedTasksServer()
 }
 
@@ -145,8 +110,8 @@ type TasksServer interface {
 // pointer dereference when methods are called.
 type UnimplementedTasksServer struct{}
 
-func (UnimplementedTasksServer) PutTask(context.Context, *PutTaskRequest) (*PutTaskResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PutTask not implemented")
+func (UnimplementedTasksServer) CreateTask(context.Context, *CreateTaskRequest) (*CreateTaskResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateTask not implemented")
 }
 func (UnimplementedTasksServer) GetTasks(*GetTasksRequest, grpc.ServerStreamingServer[GetTasksResponse]) error {
 	return status.Error(codes.Unimplemented, "method GetTasks not implemented")
@@ -154,14 +119,8 @@ func (UnimplementedTasksServer) GetTasks(*GetTasksRequest, grpc.ServerStreamingS
 func (UnimplementedTasksServer) DescribeTask(context.Context, *DescribeTaskRequest) (*DescribeTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DescribeTask not implemented")
 }
-func (UnimplementedTasksServer) MarkTask(context.Context, *MarkTaskRequest) (*MarkTaskResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method MarkTask not implemented")
-}
-func (UnimplementedTasksServer) GetTags(*GetTagsRequest, grpc.ServerStreamingServer[GetTagsResponse]) error {
-	return status.Error(codes.Unimplemented, "method GetTags not implemented")
-}
-func (UnimplementedTasksServer) SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SetStatus not implemented")
+func (UnimplementedTasksServer) SetTaskStatus(context.Context, *SetTaskStatusRequest) (*SetTaskStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetTaskStatus not implemented")
 }
 func (UnimplementedTasksServer) mustEmbedUnimplementedTasksServer() {}
 func (UnimplementedTasksServer) testEmbeddedByValue()               {}
@@ -184,20 +143,20 @@ func RegisterTasksServer(s grpc.ServiceRegistrar, srv TasksServer) {
 	s.RegisterService(&Tasks_ServiceDesc, srv)
 }
 
-func _Tasks_PutTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PutTaskRequest)
+func _Tasks_CreateTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTaskRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TasksServer).PutTask(ctx, in)
+		return srv.(TasksServer).CreateTask(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Tasks_PutTask_FullMethodName,
+		FullMethod: Tasks_CreateTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TasksServer).PutTask(ctx, req.(*PutTaskRequest))
+		return srv.(TasksServer).CreateTask(ctx, req.(*CreateTaskRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -231,49 +190,20 @@ func _Tasks_DescribeTask_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Tasks_MarkTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MarkTaskRequest)
+func _Tasks_SetTaskStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetTaskStatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TasksServer).MarkTask(ctx, in)
+		return srv.(TasksServer).SetTaskStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Tasks_MarkTask_FullMethodName,
+		FullMethod: Tasks_SetTaskStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TasksServer).MarkTask(ctx, req.(*MarkTaskRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Tasks_GetTags_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetTagsRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TasksServer).GetTags(m, &grpc.GenericServerStream[GetTagsRequest, GetTagsResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Tasks_GetTagsServer = grpc.ServerStreamingServer[GetTagsResponse]
-
-func _Tasks_SetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetStatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TasksServer).SetStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Tasks_SetStatus_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TasksServer).SetStatus(ctx, req.(*SetStatusRequest))
+		return srv.(TasksServer).SetTaskStatus(ctx, req.(*SetTaskStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -282,35 +212,26 @@ func _Tasks_SetStatus_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Tasks_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "tasks.tasks",
+	ServiceName: "tasks.v1.Tasks",
 	HandlerType: (*TasksServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PutTask",
-			Handler:    _Tasks_PutTask_Handler,
+			MethodName: "CreateTask",
+			Handler:    _Tasks_CreateTask_Handler,
 		},
 		{
 			MethodName: "DescribeTask",
 			Handler:    _Tasks_DescribeTask_Handler,
 		},
 		{
-			MethodName: "MarkTask",
-			Handler:    _Tasks_MarkTask_Handler,
-		},
-		{
-			MethodName: "SetStatus",
-			Handler:    _Tasks_SetStatus_Handler,
+			MethodName: "SetTaskStatus",
+			Handler:    _Tasks_SetTaskStatus_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "GetTasks",
 			Handler:       _Tasks_GetTasks_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetTags",
-			Handler:       _Tasks_GetTags_Handler,
 			ServerStreams: true,
 		},
 	},

@@ -1,2 +1,8 @@
 export PATH="$PATH:$(go env GOPATH)/bin"
-protoc --proto_path=api/proto --go_out=pkg/go --go_opt=paths=source_relative --go-grpc_out=pkg/go --go-grpc_opt=paths=source_relative api/proto/tasks/v1/tasks.proto
+protoc --proto_path=api/proto \
+  --go_out=pkg/go --go_opt=paths=source_relative \
+  --go-grpc_out=pkg/go --go-grpc_opt=paths=source_relative \
+  api/proto/tasks/v1/status.proto \
+  api/proto/tasks/v1/blockers.proto \
+  api/proto/tasks/v1/addendums.proto \
+  api/proto/tasks/v1/tasks.proto

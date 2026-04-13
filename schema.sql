@@ -1,53 +1,31 @@
 create database taskmaster_db;
 
 \c taskmaster_db
-
-create table if not exists tasks (
-	task_id bigint,
-	user_id bigint,
-	fields jsonb,
-	priority smallint,
-	status smallint,
-    
-	primary key (task_id)
+create sequence task_ids start 101;
+create table tasks (
+	task_id           bigint primary key default nextval('task_ids'),
+	user_id           bigint not null,
+	parent_task_id    bigint references tasks(task_id) on delete cascade,
+	title             text not null,
+	description       text not null default '',
+	status            smallint not null default 0,  -- 0=open, 1=in_progress, 2=closed
+	created_time      timestamptz not null default now()
 );
--- we'll be doing queries on this, where priority may not be specified
-CREATE index if not exists task_lookup on tasks (user_id, status, priority);
-create sequence if not exists task_ids start 101;
+create index status_task_lookup on tasks (user_id, status);
+create index task_by_parent on tasks (parent_task_id);
 
-create table if not exists tags (
-	user_id bigint,
-	tag_id bigint,
-	write_time timestamptz,
-	name varchar(256),
-
-	primary key (tag_id)
+create table task_blocked_by (
+	task_id     bigint not null references tasks(task_id) on delete cascade,
+	blocked_by  bigint not null references tasks(task_id) on delete cascade,
+	primary key (task_id, blocked_by)
 );
--- we need to lookup tags by tag id, so we need this index
-create index if not exists tag_lookup on tags (name);
-create sequence if not exists tag_ids start 101;
 
-create table if not exists tags_to_tasks (
-	task_id bigint,
-	tag_id bigint,
-
-	primary key (tag_id, task_id),
-	foreign key (task_id) references tasks(task_id) on delete cascade,
-	foreign key (tag_id) references tags(tag_id) on delete cascade
+create sequence addendum_ids start 101;
+create table addendums (
+	addendum_id  bigint primary key default nextval('addendum_ids'),
+	user_id      bigint not null,
+	task_id      bigint not null references tasks(task_id) on delete cascade,
+	content      text not null,
+	created_time timestamptz not null default now()
 );
--- need this to figure out the tags on a task when we return it
-create index if not exists tasks_to_tags_index on tags_to_tasks (task_id, tag_id);
-
-create table if not exists addendums (
-	addendum_id bigint,
-	user_id bigint,
-	task_id bigint,
-	content text,
-	write_time timestamptz,
-
-	primary key (addendum_id),
-	foreign key (task_id) references tasks(task_id) on delete cascade
-);
--- sorting by write_time so that we can return addendums in the correct order
-create index if not exists addendum_lookup on addendums (task_id, write_time);
-create sequence if not exists addendum_ids start 101;
+create index addendum_by_task on addendums (task_id, created_time);

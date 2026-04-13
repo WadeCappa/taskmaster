@@ -1,3 +1,4 @@
+-- Out of date with most recent version
 SELECT t.*
 FROM tasks t
 join tags_to_tasks ttt on t.task_id = ttt.task_id
